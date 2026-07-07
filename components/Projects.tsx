@@ -26,12 +26,21 @@ type Project = {
 
 const projects: Project[] = [
   {
+    title: "JobFlow",
+    descKey: "projects.jobflow.desc",
+    demo: "https://jobflow-lac.vercel.app",
+    repo: "https://github.com/Gabriel15gabi/jobflow",
+    stack: ["Next.js", "TypeScript", "MongoDB", "Auth.js"],
+    num: "01",
+    media: null,
+  },
+  {
     title: "Streamio",
     descKey: "projects.streamio.desc",
     demo: "https://streamio-red.vercel.app",
     repo: "https://github.com/Gabriel15gabi/Streamio",
     stack: ["JavaScript", "Node.js", "Express", "SQLite"],
-    num: "01",
+    num: "02",
     media: "/projects/streamio.mp4",
   },
   {
@@ -40,7 +49,7 @@ const projects: Project[] = [
     demo: "https://invoice-tracker-kohl.vercel.app",
     repo: "https://github.com/Gabriel15gabi/invoice-tracker",
     stack: ["React", "Express", "SQLite", "JWT"],
-    num: "02",
+    num: "03",
     media: "/projects/invoice.mp4",
   },
   {
@@ -49,7 +58,7 @@ const projects: Project[] = [
     demo: "https://el-restaurante-alpha.vercel.app",
     repo: "https://github.com/Gabriel15gabi/El-Restaurante",
     stack: ["HTML5", "CSS3", "JavaScript"],
-    num: "03",
+    num: "04",
     media: "/projects/restaurant.mp4",
   },
   {
@@ -58,7 +67,7 @@ const projects: Project[] = [
     demo: "https://jobtrackr-five.vercel.app",
     repo: "https://github.com/Gabriel15gabi/jobtrackr",
     stack: ["React", "Tailwind", "Express", "SQLite"],
-    num: "04",
+    num: "05",
     media: "/projects/jobtracker.mp4",
   },
   {
@@ -67,7 +76,7 @@ const projects: Project[] = [
     demo: null,
     repo: null,
     stack: [],
-    num: "05",
+    num: "06",
     media: null,
     soon: true,
   },
@@ -76,8 +85,15 @@ const projects: Project[] = [
 /* ── Fondo de tarjeta — neutro y uniforme ──────────
    Si en el futuro hay `media`, se muestra la imagen/vídeo.
    Si no, un placeholder neutro idéntico para todas. */
-function ProjectMedia({ media }: { media: string | null }) {
-  // El póster (primer fotograma) se muestra parado; el vídeo se reproduce al hover.
+function ProjectMedia({
+  media,
+  active = false,
+}: {
+  media: string | null;
+  active?: boolean;
+}) {
+  // En escritorio se activa con hover (group-hover). En móvil, con `active`
+  // (cuando la tarjeta entra en pantalla), porque el hover no existe al tocar.
   const poster = media ? media.replace(/\.mp4$/, ".jpg") : undefined;
   return (
     <div className="absolute inset-0" aria-hidden>
@@ -89,7 +105,11 @@ function ProjectMedia({ media }: { media: string | null }) {
           loop
           playsInline
           preload="metadata"
-          className="h-full w-full object-cover grayscale transition-all duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.03]"
+          className={`h-full w-full object-cover transition-all duration-700 ease-out ${
+            active
+              ? "scale-[1.03] grayscale-0"
+              : "grayscale group-hover:scale-[1.03] group-hover:grayscale-0"
+          }`}
         />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-[#0c0c0c] to-[#070707]">
@@ -176,6 +196,82 @@ function ProjectActions({
   );
 }
 
+/* ── Tarjeta MÓVIL — se activa (color + vídeo) al entrar en pantalla ── */
+function MobileProjectCard({
+  project,
+  t,
+}: {
+  project: Project;
+  t: (k: string) => string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const video = el.querySelector("video");
+
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        const visible = entry.isIntersecting && entry.intersectionRatio >= 0.5;
+        setActive(visible);
+        if (video) {
+          if (visible) video.play().catch(() => {});
+          else {
+            video.pause();
+            video.currentTime = 0;
+          }
+        }
+      },
+      { threshold: [0, 0.5, 1] }
+    );
+
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="cursor-pointer [perspective:1200px]"
+      onClick={() => {
+        const url = project.demo || project.repo;
+        if (url) window.open(url, "_blank", "noopener,noreferrer");
+      }}
+    >
+      <TiltCard className="group overflow-hidden rounded-2xl border border-white/5">
+        <div className="relative h-[400px] overflow-hidden">
+          <ProjectMedia media={project.media} active={active} />
+          <span className="absolute right-5 top-5 text-6xl font-light text-white/10">
+            {project.num}
+          </span>
+          <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
+            {project.soon ? (
+              <>
+                <h3 className="mb-2 text-2xl font-light text-white/70">
+                  {t("projects.soon")}
+                </h3>
+                <p className="text-[10px] font-medium uppercase tracking-[3px] text-white/30">
+                  {t("projects.soonSub")}
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="mb-3 text-2xl font-light">{project.title}</h3>
+                <div className="mb-5">
+                  <SkillTags stack={project.stack} />
+                </div>
+                <ProjectActions project={project} t={t} />
+              </>
+            )}
+          </div>
+        </div>
+      </TiltCard>
+    </div>
+  );
+}
+
 export default function Projects() {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -240,56 +336,7 @@ export default function Projects() {
         </h2>
         <div className="space-y-8">
           {projects.map((project) => (
-            <div
-              key={project.title}
-              className="cursor-pointer [perspective:1200px]"
-              onClick={() => {
-                const url = project.demo || project.repo;
-                if (url) window.open(url, "_blank", "noopener,noreferrer");
-              }}
-              onMouseEnter={(e) => {
-                const v = e.currentTarget.querySelector("video");
-                if (v) v.play().catch(() => {});
-              }}
-              onMouseLeave={(e) => {
-                const v = e.currentTarget.querySelector("video");
-                if (v) {
-                  v.pause();
-                  v.currentTime = 0;
-                }
-              }}
-            >
-              <TiltCard className="group overflow-hidden rounded-2xl border border-white/5">
-                <div className="relative h-[400px] overflow-hidden">
-                  <ProjectMedia media={project.media} />
-                  <span className="absolute right-5 top-5 text-6xl font-light text-white/10">
-                    {project.num}
-                  </span>
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
-                    {project.soon ? (
-                      <>
-                        <h3 className="mb-2 text-2xl font-light text-white/70">
-                          {t("projects.soon")}
-                        </h3>
-                        <p className="text-[10px] font-medium uppercase tracking-[3px] text-white/30">
-                          {t("projects.soonSub")}
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <h3 className="mb-3 text-2xl font-light">
-                          {project.title}
-                        </h3>
-                        <div className="mb-5">
-                          <SkillTags stack={project.stack} />
-                        </div>
-                        <ProjectActions project={project} t={t} />
-                      </>
-                    )}
-                  </div>
-                </div>
-              </TiltCard>
-            </div>
+            <MobileProjectCard key={project.title} project={project} t={t} />
           ))}
         </div>
       </section>

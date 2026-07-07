@@ -60,6 +60,8 @@ const translations: Record<Lang, Dict> = {
     "projects.code": "Código",
     "projects.soon": "Próximamente",
     "projects.soonSub": "Nuevo proyecto en camino",
+    "projects.jobflow.desc":
+      "Tracker de candidaturas con matching por IA y motor de automatización propio tipo Make: workflows con disparadores, kanban y analíticas.",
     "projects.streamio.desc":
       "Clon de Netflix full-stack: catálogo con la API de TMDB, login y lista de favoritos.",
     "projects.invoice.desc":
@@ -138,6 +140,8 @@ const translations: Record<Lang, Dict> = {
     "projects.code": "Code",
     "projects.soon": "Coming soon",
     "projects.soonSub": "New project on the way",
+    "projects.jobflow.desc":
+      "Job application tracker with AI matching and a hand-built Make-style automation engine: trigger-based workflows, kanban and analytics.",
     "projects.streamio.desc":
       "Full-stack Netflix clone: catalog powered by the TMDB API, login and a favorites list.",
     "projects.invoice.desc":
