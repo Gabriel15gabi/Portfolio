@@ -68,8 +68,6 @@ const translations: Record<Lang, Dict> = {
       "App de facturación full-stack con login (JWT), base de datos, gráficos y exportación de facturas a PDF.",
     "projects.restaurant.desc":
       "Web moderna y responsive para restaurante con reservas y menú interactivo.",
-    "projects.jobtracker.desc":
-      "Gestor de candidaturas full-stack: React con backend en Express y SQLite, con estados y filtros.",
 
     // contact
     "contact.label": "Contacto",
@@ -148,8 +146,6 @@ const translations: Record<Lang, Dict> = {
       "Full-stack invoicing app with login (JWT), database, charts and PDF invoice export.",
     "projects.restaurant.desc":
       "Modern responsive restaurant website with bookings and interactive menu.",
-    "projects.jobtracker.desc":
-      "Full-stack job application tracker: React with an Express + SQLite backend, statuses and filters.",
 
     "contact.label": "Contact",
     "contact.heading1": "Have a project",
