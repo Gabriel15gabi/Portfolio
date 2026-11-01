@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gabriel Rodríguez — Portfolio
 
-## Getting Started
-
-First, run the development server:
+**Brutalist Digital Object.** Portfolio personal construido con Next.js 16 (App Router), React 19, Tailwind CSS v4, GSAP + ScrollTrigger y Lenis.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev     # http://localhost:3000
+npm run build   # build de producción
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Estructura
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+app/
+  layout.tsx          Fuentes (Anton, Space Grotesk, IBM Plex Mono), metadata SEO, JSON-LD
+  page.tsx            Orden de secciones
+  globals.css         Tokens de diseño (paleta, tipografía, temas) y utilidades
+lib/
+  content.ts          Fuente única: perfil, proyectos, stack y experimentos
+  i18n.tsx            Traducciones ES/EN + LanguageProvider
+  gsap.ts             Registro de plugins y media queries compartidas
+components/
+  system/             Nav + menú fullscreen, cursor, intro, Lenis, temas, cookies
+  sections/           00 Intro · Manifesto · 01 Work · 02 Experimental · 03 Engineer · 04 Contact
+  ui/                 Reveal (máscaras), KineticLine, Parallax, SectionHeader, ProjectMedia
+  experiments/        Experimentos de la Experimental Zone (EXP—01 partículas)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Cómo editar
 
-## Learn More
+- **Colores y tipografías:** `@theme` en `app/globals.css`. Los temas `light`, `dark` y `red` se aplican por sección con `data-theme`.
+- **Proyectos:** añade una entrada en `PROJECTS` (`lib/content.ts`) y su descripción en `lib/i18n.tsx`. `layout` elige la composición (`type`, `bleed`, `column`, `block`). Un enlace solo aparece si existe.
+- **Experimentos:** cambia el `status` de un hueco a `"live"` en `EXPERIMENTS` y conecta su componente en `components/sections/Experimental.tsx`.
+- **Formulario:** Web3Forms. La clave puede definirse en `NEXT_PUBLIC_WEB3FORMS_KEY`.
 
-To learn more about Next.js, take a look at the following resources:
+## Movimiento y accesibilidad
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Todas las animaciones se montan con `gsap.matchMedia()`: con `prefers-reduced-motion` el contenido se muestra estático y el scroll vuelve a ser nativo.
+- Parallax, distorsión de imagen y cursor propio solo en escritorio con puntero fino.
+- El experimento de partículas se pausa fuera de pantalla y tiene botón de pausa.
