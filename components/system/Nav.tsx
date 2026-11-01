@@ -5,6 +5,7 @@ import { useLenis } from "lenis/react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useLanguage } from "@/lib/i18n";
 import { PROFILE } from "@/lib/content";
+import { prefersReducedMotion } from "@/lib/env";
 
 const LINKS = [
   { href: "#top", key: "nav.home", num: "00" },
@@ -18,12 +19,18 @@ const LINKS = [
 function useMeridaTime() {
   const [time, setTime] = useState<string | null>(null);
   useEffect(() => {
-    const fmt = new Intl.DateTimeFormat("es-ES", {
+    // timeZoneName "short" da CET en invierno y CEST en verano.
+    const fmt = new Intl.DateTimeFormat("en-GB", {
       timeZone: "Europe/Madrid",
       hour: "2-digit",
       minute: "2-digit",
+      timeZoneName: "short",
     });
-    const tick = () => setTime(fmt.format(new Date()));
+    const tick = () => {
+      const parts = fmt.formatToParts(new Date());
+      const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+      setTime(`${get("hour")}:${get("minute")} ${get("timeZoneName")}`);
+    };
     tick();
     const id = setInterval(tick, 30_000);
     return () => clearInterval(id);
@@ -75,7 +82,7 @@ export default function Nav() {
     () => {
       const el = overlayRef.current;
       if (!el) return;
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const reduce = prefersReducedMotion();
       gsap.set(el, { clipPath: "polygon(0 0, 100% 0, 100% 0, 0 0)", visibility: "hidden" });
       tl.current = gsap
         .timeline({ paused: true })
@@ -124,9 +131,13 @@ export default function Nav() {
         buttonRef.current?.focus();
       }
       if (e.key === "Tab" && overlayRef.current) {
-        const focusables = Array.from(
+        // Orden real de tabulación: botón del menú (antes en el DOM) y
+        // después los elementos visibles del overlay.
+        const inOverlay = Array.from(
           overlayRef.current.querySelectorAll<HTMLElement>("a, button")
-        ).concat(buttonRef.current ? [buttonRef.current] : []);
+        ).filter((el) => el.checkVisibility?.({ visibilityProperty: true }) ?? el.getClientRects().length > 0);
+        const focusables: HTMLElement[] = [...(buttonRef.current ? [buttonRef.current] : []), ...inOverlay];
+        if (!focusables.length) return;
         const first = focusables[0];
         const last = focusables[focusables.length - 1];
         if (e.shiftKey && document.activeElement === first) {
@@ -138,23 +149,40 @@ export default function Nav() {
         }
       }
     };
+    // Red de seguridad: si el foco acaba fuera del diálogo (p. ej. mientras
+    // la animación de entrada aún oculta elementos), vuelve al menú.
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target as Node | null;
+      if (!target || overlayRef.current?.contains(target) || target === buttonRef.current) return;
+      overlayRef.current?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("focusin", onFocusIn);
+    };
   }, [open]);
 
   const go = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
       e.preventDefault();
+      // Evita que el manejador de anclas de Lenis (en window) lance un segundo scroll.
+      e.stopPropagation();
+      const wasOpen = open;
       setOpen(false);
       const target = href === "#top" ? 0 : href;
-      // Espera a que la cortina empiece a cerrarse antes de desplazar.
-      setTimeout(() => {
-        if (lenis) lenis.scrollTo(target, { duration: 1.4 });
+      const reduce = prefersReducedMotion();
+      const run = () => {
+        if (lenis) lenis.scrollTo(target, reduce ? { immediate: true, force: true } : { duration: 1.4, force: true });
         else if (typeof target === "string") document.querySelector(target)?.scrollIntoView();
         else window.scrollTo(0, 0);
-      }, 120);
+      };
+      // Con el menú abierto, espera a que la cortina empiece a cerrarse.
+      if (wasOpen) setTimeout(run, 120);
+      else run();
     },
-    [lenis]
+    [lenis, open]
   );
 
   return (
@@ -196,7 +224,7 @@ export default function Nav() {
           <div className="label-mono hidden items-center gap-2 md:flex" aria-hidden={!time}>
             <span className="h-2 w-2 bg-accent animate-blink" />
             <span>
-              Mérida — {time ?? "--:--"} CET
+              Mérida — {time ?? "--:--"}
             </span>
           </div>
 

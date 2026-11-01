@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef } from "react";
 import { gsap, useGSAP, MQ } from "@/lib/gsap";
+import { hasFinePointer, prefersReducedMotion } from "@/lib/env";
 
 /**
  * Media de proyecto con tratamiento propio:
@@ -29,6 +30,7 @@ export default function ProjectMedia({
   const innerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const dispRef = useRef<SVGFEDisplacementMapElement>(null);
+  const distortRef = useRef<gsap.core.Tween | null>(null);
   const poster = src.replace(/\.mp4$/, ".jpg");
 
   // Parallax interno (desktop + movimiento)
@@ -56,8 +58,8 @@ export default function ProjectMedia({
     const el = wrapRef.current;
     const video = videoRef.current;
     if (!el || !video) return;
-    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (hasFinePointer()) return;
+    const reduce = prefersReducedMotion();
     const obs = new IntersectionObserver(
       ([entry]) => {
         const on = entry.isIntersecting && entry.intersectionRatio >= 0.6;
@@ -74,15 +76,16 @@ export default function ProjectMedia({
 
   const enter = () => {
     const video = videoRef.current;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = prefersReducedMotion();
     if (video && !reduce) video.play().catch(() => {});
     const disp = dispRef.current;
     const media = innerRef.current;
     if (!disp || !media || reduce) return;
     const state = { s: 38 };
     media.style.filter = `url(#${filterId})`;
-    gsap.killTweensOf(state);
-    gsap.to(state, {
+    // Una sola distorsión a la vez: la anterior se cancela sin limpiar el filtro.
+    distortRef.current?.kill();
+    distortRef.current = gsap.to(state, {
       s: 0,
       duration: 0.9,
       ease: "expo.out",

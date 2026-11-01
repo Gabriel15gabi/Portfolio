@@ -1,35 +1,34 @@
 "use client";
 
-import { ReactLenis, type LenisRef } from "lenis/react";
+import { ReactLenis, useLenis } from "lenis/react";
 import "lenis/dist/lenis.css";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import type Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { MEDIA } from "@/lib/env";
 
 /**
- * Lenis sincronizado con el ticker de GSAP (autoRaf: false) para que
- * ScrollTrigger lea siempre la posición correcta sin jitter.
- * Con prefers-reduced-motion el scroll vuelve a ser inmediato.
+ * Conecta la instancia de Lenis (disponible solo dentro del provider)
+ * con GSAP: ticker compartido, ScrollTrigger.update en cada scroll y
+ * scroll nativo inmediato con prefers-reduced-motion.
  */
-export default function SmoothScroll({ children }: { children: React.ReactNode }) {
-  const lenisRef = useRef<LenisRef>(null);
+/** Lenis lee sus opciones en cada evento: ajustarlas en caliente es su API. */
+function setMotion(lenis: Lenis, reduced: boolean) {
+  Object.assign(lenis.options, { lerp: reduced ? 1 : 0.12, syncTouch: !reduced });
+}
+
+function LenisSync() {
+  const lenis = useLenis();
 
   useEffect(() => {
-    const lenis = lenisRef.current?.lenis;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    const applyMotionPref = () => {
-      if (!lenis) return;
-      lenis.options.lerp = reduce.matches ? 1 : 0.12;
-      lenis.options.syncTouch = !reduce.matches;
-    };
+    if (!lenis) return;
+    const reduce = window.matchMedia(MEDIA.reducedMotion);
+    const applyMotionPref = () => setMotion(lenis, reduce.matches);
     applyMotionPref();
     reduce.addEventListener("change", applyMotionPref);
 
-    lenis?.on("scroll", ScrollTrigger.update);
-
-    function update(time: number) {
-      lenisRef.current?.lenis?.raf(time * 1000);
-    }
+    lenis.on("scroll", ScrollTrigger.update);
+    const update = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(update);
     gsap.ticker.lagSmoothing(0);
 
@@ -38,22 +37,26 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
     return () => {
       reduce.removeEventListener("change", applyMotionPref);
-      lenis?.off("scroll", ScrollTrigger.update);
+      lenis.off("scroll", ScrollTrigger.update);
       gsap.ticker.remove(update);
     };
-  }, []);
+  }, [lenis]);
 
+  return null;
+}
+
+export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   return (
     <ReactLenis
       root
-      ref={lenisRef}
       options={{
         lerp: 0.12,
-        syncTouch: false,
-        autoRaf: false,
+        syncTouch: true,
+        autoRaf: false, // GSAP controla el RAF
         anchors: true,
       }}
     >
+      <LenisSync />
       {children}
     </ReactLenis>
   );

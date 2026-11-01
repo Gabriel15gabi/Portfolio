@@ -63,6 +63,18 @@ function Title({ children, className = "", id }: { children: string; className?:
   );
 }
 
+/** Divide un título compuesto ("JobFlow") en macizo + contorno. */
+function SplitTitle({ title }: { title: string }) {
+  const cut = title.search(/(?<=.)[A-Z\s]/);
+  if (cut <= 0) return <>{title}</>;
+  return (
+    <>
+      {title.slice(0, cut)}
+      <span className="text-outline">{title.slice(cut).trim()}</span>
+    </>
+  );
+}
+
 /* ── 01 · Composición tipográfica (sin captura) ─────────── */
 function PieceType({ p, t }: { p: Project; t: T }) {
   const features = p.featuresKey ? t(p.featuresKey).split("|") : [];
@@ -74,7 +86,7 @@ function PieceType({ p, t }: { p: Project; t: T }) {
           <h3 id={`p-${p.slug}`} className="display whitespace-nowrap text-[22vw] leading-[0.78] md:text-[24vw]">
             <span className="mask-line">
               <span className="block">
-                Job<span className="text-outline">Flow</span>
+                <SplitTitle title={p.title} />
               </span>
             </span>
           </h3>
@@ -107,7 +119,7 @@ function PieceBleed({ p, t }: { p: Project; t: T }) {
       <MetaStrip p={p} t={t} />
       <div className="relative mt-6 grid md:grid-cols-12">
         <Reveal variant="clip" className="md:col-span-10">
-          <ProjectMedia src={p.media!} title={p.title} href={p.demo} className="aspect-[16/10] md:aspect-[16/8.5]" />
+          <ProjectMedia src={p.media ?? ""} title={p.title} href={p.demo} className="aspect-[16/10] md:aspect-[16/8.5]" />
         </Reveal>
         <div className="relative md:col-span-6 md:col-start-6 md:-mt-[9vw]">
           <Title id={`p-${p.slug}`} className="text-[19vw] [-webkit-text-stroke:0.07em_var(--bg)] [paint-order:stroke_fill] md:text-[13vw]">{p.title}</Title>
@@ -145,7 +157,7 @@ function PieceColumn({ p, t }: { p: Project; t: T }) {
         </div>
         <Parallax speed={-0.15} className="md:col-span-5 md:col-start-8">
           <Reveal variant="clip">
-            <ProjectMedia src={p.media!} title={p.title} href={p.demo} className="aspect-[4/5]" />
+            <ProjectMedia src={p.media ?? ""} title={p.title} href={p.demo} className="aspect-[4/5]" />
           </Reveal>
         </Parallax>
       </div>
@@ -165,7 +177,7 @@ function PieceBlock({ p, t }: { p: Project; t: T }) {
         </div>
         <div className="md:col-span-8">
           <ProjectMedia
-            src={p.media!}
+            src={p.media ?? ""}
             title={p.title}
             href={p.demo}
             className="aspect-[16/10] border-2 border-ink"
@@ -218,7 +230,8 @@ export default function Work() {
       <SectionHeader num="01" title="Selected Work" label={t("work.label")} meta={t("work.meta")} id="work-title" />
       <div className="mt-16 flex flex-col gap-32 px-4 sm:px-8 md:mt-24 md:gap-48 lg:px-12">
         {PROJECTS.map((p) => {
-          const Piece = LAYOUTS[p.layout];
+          // Las composiciones con imagen necesitan media; sin ella, tipográfica.
+          const Piece = p.media ? LAYOUTS[p.layout] : PieceType;
           return <Piece key={p.slug} p={p} t={t} />;
         })}
         <NextPiece t={t} />

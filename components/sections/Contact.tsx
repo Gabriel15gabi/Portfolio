@@ -7,6 +7,7 @@ import { KineticLine } from "@/components/ui/Kinetic";
 import { PROFILE } from "@/lib/content";
 import { useLanguage } from "@/lib/i18n";
 import { useLenis } from "lenis/react";
+import { prefersReducedMotion } from "@/lib/env";
 
 // Clave pública de Web3Forms (https://web3forms.com). Se puede definir
 // vía NEXT_PUBLIC_WEB3FORMS_KEY. Si está vacía, el formulario hace
@@ -253,13 +254,14 @@ export default function Contact() {
 
       {/* Pie */}
       <footer className="label-mono mt-24 flex flex-col gap-3 border-t-2 border-ink py-5 sm:flex-row sm:items-center sm:justify-between">
-        <span>© {new Date().getFullYear()} — {t("contact.footer")}</span>
+        <span suppressHydrationWarning>© {new Date().getFullYear()} — {t("contact.footer")}</span>
         <span className="hidden md:block">Next.js — GSAP — Lenis</span>
         <a
           href="#top"
           onClick={(e) => {
             e.preventDefault();
-            if (lenis) lenis.scrollTo(0, { duration: 1.6 });
+            e.stopPropagation(); // sin doble scroll con las anclas de Lenis
+            if (lenis) lenis.scrollTo(0, prefersReducedMotion() ? { immediate: true } : { duration: 1.6 });
             else window.scrollTo(0, 0);
           }}
           className="link-sweep w-fit"

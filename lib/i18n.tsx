@@ -251,13 +251,14 @@ const Ctx = createContext<I18nCtx>({
    useSyncExternalStore da "es" en SSR/hidratación y la preferencia
    guardada justo después, sin setState dentro de un efecto. */
 const listeners = new Set<() => void>();
-let memoryLang: Lang = "es"; // respaldo si localStorage no está disponible
+let memoryLang: Lang | null = null; // elección de esta visita
 function readLang(): Lang {
   try {
     const stored = localStorage.getItem("lang");
-    return stored === "en" || stored === "es" ? stored : memoryLang;
+    // La elección de esta visita (memoria) manda sobre lo guardado.
+    return memoryLang !== null ? memoryLang : stored === "en" ? "en" : "es";
   } catch {
-    return memoryLang;
+    return memoryLang ?? "es";
   }
 }
 function subscribe(cb: () => void) {
@@ -272,12 +273,17 @@ function subscribe(cb: () => void) {
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const lang = useSyncExternalStore(subscribe, readLang, () => "es" as Lang);
 
-  // Persistimos en localStorage + cookie (1 año) al cambiar de idioma.
+  // Persistimos en localStorage + cookie (1 año) solo con consentimiento.
   const setLang = useCallback((l: Lang) => {
     memoryLang = l;
     try {
-      localStorage.setItem("lang", l);
-      document.cookie = `lang=${l}; path=/; max-age=31536000; SameSite=Lax`;
+      // Solo se guarda la preferencia si el visitante aceptó las cookies.
+      if (localStorage.getItem("cookie-consent") === "accepted") {
+        localStorage.setItem("lang", l);
+        document.cookie = `lang=${l}; path=/; max-age=31536000; SameSite=Lax`;
+      } else {
+        localStorage.removeItem("lang");
+      }
     } catch {
       /* almacenamiento no disponible */
     }

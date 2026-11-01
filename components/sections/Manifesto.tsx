@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, useGSAP, MQ } from "@/lib/gsap";
+import { gsap, useGSAP, ScrollTrigger, MQ } from "@/lib/gsap";
 import { useLanguage } from "@/lib/i18n";
 
 /** Cinta industrial que cruza la composición en diagonal. */
@@ -57,12 +57,13 @@ export default function Manifesto() {
             },
           }
         );
-        // Las palabras clave toman el color de acento al pasar.
+        // Las palabras clave toman el color de acento al pasar (clase, no
+        // color capturado: no depende del tema activo al crear el trigger).
         gsap.utils.toArray<HTMLElement>("[data-key]", ref.current).forEach((w) => {
-          gsap.to(w, {
-            color: "var(--color-signal)",
-            ease: "none",
-            scrollTrigger: { trigger: w, start: "top 60%", end: "top 50%", scrub: true },
+          ScrollTrigger.create({
+            trigger: w,
+            start: "top 60%",
+            toggleClass: { targets: w, className: "text-signal" },
           });
         });
       });
@@ -93,7 +94,7 @@ export default function Manifesto() {
           className="text-[clamp(2rem,5.4vw,5.6rem)] font-medium leading-[1.02] tracking-[-0.03em] md:col-span-9"
         >
           {text.split(" ").map((w, i) => (
-            <span key={`${w}-${i}`} data-word {...(keys.has(w.toLowerCase()) ? { "data-key": "" } : {})}>
+            <span key={`${w}-${i}`} data-word className="transition-colors duration-500" {...(keys.has(w.toLowerCase()) ? { "data-key": "" } : {})}>
               {w}{" "}
             </span>
           ))}

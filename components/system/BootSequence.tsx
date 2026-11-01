@@ -71,7 +71,7 @@ export default function BootSequence() {
       <script
         // Antes del primer pintado: decide si la intro se muestra.
         dangerouslySetInnerHTML={{
-          __html: `try{if(sessionStorage.getItem('${KEY}')||matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('no-boot')}catch(e){}`,
+          __html: `try{var d=document.documentElement,r=matchMedia('(prefers-reduced-motion: reduce)').matches;if(!r)d.classList.add('motion-ok');if(sessionStorage.getItem('${KEY}')||r)d.classList.add('no-boot')}catch(e){}`,
         }}
       />
       <noscript>

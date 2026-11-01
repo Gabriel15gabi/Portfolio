@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/i18n";
 const CONSENT_KEY = "cookie-consent";
 
 export default function CookieConsent() {
-  const { t } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
   const [visible, setVisible] = useState(false);
 
   // Mostrar solo si no hay decisión previa.
@@ -28,6 +28,8 @@ export default function CookieConsent() {
     } catch {
       /* almacenamiento no disponible */
     }
+    // Con consentimiento, guarda el idioma elegido en esta visita.
+    if (choice === "accepted") setLang(lang);
     setVisible(false);
   };
 

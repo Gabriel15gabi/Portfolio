@@ -1,73 +1,112 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, useGSAP, MQ } from "@/lib/gsap";
+import { gsap, useGSAP, ScrollTrigger, MQ } from "@/lib/gsap";
 import { useLanguage } from "@/lib/i18n";
 import { PROFILE } from "@/lib/content";
+import { createParticleField } from "@/lib/particles";
+import { cssVar, hasFinePointer } from "@/lib/env";
 
 const FIRST = "GABRIEL";
 const LAST = "RODRÍGUEZ";
 
-// Velocidades de cada letra al hacer scroll: el nombre se "desmonta".
-const SPEEDS_FIRST = [0.15, -0.35, 0.5, 0.05, 0.4, -0.2, 0.3];
-const SPEEDS_LAST = [-0.25, 0.3, 0.1, -0.4, 0.45, 0.2, -0.15, 0.35, -0.05];
-
-function Chars({ text, speeds }: { text: string; speeds: number[] }) {
+function Chars({ text }: { text: string }) {
   return (
     <>
       {text.split("").map((c, i) => (
-        <span key={i} className="mask-line inline-block" style={{ paddingTop: "0.32em", marginTop: "-0.32em", paddingBottom: 0 }}>
-          <span data-char data-speed={speeds[i % speeds.length]} className="inline-block will-change-transform">
-            {c}
-          </span>
+        <span key={i} data-char className="inline-block">
+          {c}
         </span>
       ))}
     </>
   );
 }
 
+/**
+ * Muestrea el nombre real del DOM: cada letra se dibuja en el canvas
+ * oculto en la misma posición, fuente y tamaño que en la página, así
+ * las partículas forman exactamente la composición tipográfica.
+ * El punto final (acento) se dibuja en rojo puro → partículas rojas.
+ */
+function sampleName(root: HTMLElement, canvas: HTMLCanvasElement) {
+  return (o: CanvasRenderingContext2D) => {
+    const origin = canvas.getBoundingClientRect();
+    root.querySelectorAll<HTMLElement>("[data-char]").forEach((el) => {
+      const r = el.getBoundingClientRect();
+      const cs = getComputedStyle(el);
+      o.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      o.textBaseline = "alphabetic";
+      o.textAlign = "left";
+      const m = o.measureText(el.textContent || "");
+      const asc = m.fontBoundingBoxAscent;
+      const desc = m.fontBoundingBoxDescent;
+      // El glifo se centra verticalmente en la caja de línea (medio interlineado).
+      const baseline = r.top - origin.top + (r.height - (asc + desc)) / 2 + asc;
+      o.fillStyle = el.closest("[data-accent]") ? "#ff0000" : "#000";
+      o.fillText(el.textContent || "", r.left - origin.left, baseline);
+    });
+  };
+}
+
 export default function Intro() {
   const { t, lang } = useLanguage();
   const ref = useRef<HTMLElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
 
   useGSAP(
     () => {
       const root = ref.current;
-      if (!root) return;
-      const chars = gsap.utils.toArray<HTMLElement>("[data-char]", root);
+      const canvas = canvasRef.current;
+      const name = nameRef.current;
+      if (!root || !canvas || !name) return;
       const mm = gsap.matchMedia();
 
       mm.add(MQ.motion, () => {
-        // 1 · Entrada: letras suben desde la máscara cuando termina la intro.
-        gsap.set(chars, { yPercent: 105 });
+        // 1 · Nombre en partículas: nace disperso y se ensambla.
+        const finePointer = hasFinePointer();
+        const field = createParticleField(canvas, {
+          sample: sampleName(name, canvas),
+          baseColor: () => getComputedStyle(canvas).color,
+          accentColor: () => cssVar("--color-signal") || "#e52b25",
+          accentRatio: 0.015,
+          step: finePointer ? 4 : 3,
+          maxParticles: finePointer ? 16000 : 7000,
+          size: finePointer ? 2.6 : 2.2,
+          radius: finePointer ? 110 : 70,
+          scatterDistance: 0.45,
+          startScattered: true,
+          pointerTarget: window,
+        });
+        name.dataset.particles = "on";
+        document.documentElement.classList.add("motion-ok");
+
+        const state = { entry: 1, scroll: 0 };
+        const apply = () => field.setScatter(Math.max(state.entry, state.scroll));
+        apply();
+
         gsap.set("[data-intro-fade]", { autoAlpha: 0, y: 16 });
         gsap.set("[data-intro-block]", { scaleX: 0 });
 
         const enter = () => {
           const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
-          tl.to(chars, { yPercent: 0, duration: 1.1, stagger: { each: 0.035, from: "start" } })
-            .to("[data-intro-block]", { scaleX: 1, duration: 0.9, ease: "expo.inOut" }, 0.15)
-            .to("[data-intro-fade]", { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.06 }, 0.45);
+          tl.to(state, { entry: 0, duration: 1.8, ease: "power3.out", onUpdate: apply })
+            .to("[data-intro-block]", { scaleX: 1, duration: 0.9, ease: "expo.inOut" }, 0.1)
+            .to("[data-intro-fade]", { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.06 }, 0.4);
         };
         const w = window as unknown as { __grReady?: boolean };
         if (w.__grReady) enter();
         else window.addEventListener("intro:ready", enter, { once: true });
 
-        // 2 · Tipografía cinética: cada letra a su velocidad con el scroll.
-        chars.forEach((c) => {
-          const s = parseFloat(c.dataset.speed || "0");
-          gsap.to(c, {
-            y: () => s * window.innerHeight * 0.45,
-            rotate: s * 6,
-            ease: "none",
-            scrollTrigger: {
-              trigger: root,
-              start: "top top",
-              end: "bottom top",
-              scrub: true,
-              invalidateOnRefresh: true,
-            },
-          });
+        // 2 · Tipografía cinética: el nombre se desintegra al hacer scroll.
+        const st = ScrollTrigger.create({
+          trigger: root,
+          start: "top top",
+          end: "bottom top",
+          onUpdate: (self) => {
+            state.scroll = Math.pow(self.progress, 1.6) * 0.9;
+            apply();
+          },
         });
 
         // 3 · Parallax asimétrico de bloques secundarios.
@@ -82,7 +121,13 @@ export default function Intro() {
           scrollTrigger: { trigger: root, start: "top top", end: "bottom top", scrub: true, invalidateOnRefresh: true },
         });
 
-        return () => window.removeEventListener("intro:ready", enter);
+        return () => {
+          window.removeEventListener("intro:ready", enter);
+          st.kill();
+          field.destroy();
+          delete name.dataset.particles;
+          document.documentElement.classList.remove("motion-ok");
+        };
       });
 
       return () => mm.revert();
@@ -100,6 +145,13 @@ export default function Intro() {
     >
       {/* Retícula técnica */}
       <div className="grid-lines pointer-events-none absolute inset-0 opacity-[0.06]" aria-hidden />
+
+      {/* Lienzo de partículas del nombre (sobre el h1, sin capturar eventos) */}
+      <canvas
+        ref={canvasRef}
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-10 h-full w-full text-fg"
+      />
 
       {/* Fila de metadatos */}
       <div className="label-mono relative grid grid-cols-2 gap-x-4 gap-y-2 border-t-2 border-fg pt-3 md:grid-cols-12">
@@ -149,17 +201,23 @@ export default function Intro() {
           className="absolute right-0 top-[-14%] h-[46%] w-[30%] origin-right bg-signal md:right-0 md:top-[-34%] md:h-[66%] md:w-[24%]"
         />
 
-        <h1 id="intro-title" className="display relative select-none" aria-label={PROFILE.name}>
+        <h1
+          ref={nameRef}
+          id="intro-title"
+          data-intro-name
+          className="display relative select-none"
+          aria-label={PROFILE.name}
+        >
           <span aria-hidden className="block whitespace-nowrap text-[30vw] leading-[0.8] tracking-[-0.02em] md:text-[24.5vw]">
-            <Chars text={FIRST} speeds={SPEEDS_FIRST} />
+            <Chars text={FIRST} />
           </span>
           <span
             aria-hidden
             className="block whitespace-nowrap mt-[0.2em] text-[19.5vw] leading-[0.8] tracking-[-0.015em] md:ml-[12vw] md:mt-0 md:text-[16.4vw]"
           >
-            <Chars text={LAST} speeds={SPEEDS_LAST} />
-            <span className="inline-block text-accent">
-              <Chars text="." speeds={[0.6]} />
+            <Chars text={LAST} />
+            <span data-accent className="inline-block text-accent">
+              <Chars text="." />
             </span>
           </span>
         </h1>

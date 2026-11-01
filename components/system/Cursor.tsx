@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import { hasFinePointer, prefersReducedMotion } from "@/lib/env";
 
 /**
  * Cursor contextual.
@@ -19,9 +20,9 @@ export default function Cursor() {
     const el = ref.current;
     const label = labelRef.current;
     if (!el || !label) return;
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (!hasFinePointer()) return;
 
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = prefersReducedMotion();
     const root = document.documentElement;
     root.classList.add("has-cursor");
 

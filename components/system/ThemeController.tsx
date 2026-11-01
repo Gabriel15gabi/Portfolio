@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { ScrollTrigger } from "@/lib/gsap";
+import { cssVar } from "@/lib/env";
+import { useLanguage } from "@/lib/i18n";
 
 /**
  * Cambia el tema global (paper / ink / red) según la sección que ocupa
@@ -18,16 +20,18 @@ export default function ThemeController() {
     );
 
     const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    const colors: Record<string, string> = {
-      light: "#f0efe9",
-      dark: "#111111",
-      red: "#e52b25",
+    // Colores de la barra del navegador leídos de los tokens de @theme.
+    const tokens: Record<string, string> = {
+      light: "--color-paper",
+      dark: "--color-ink",
+      red: "--color-signal",
     };
 
     const setTheme = (theme: string) => {
       if (root.dataset.theme === theme) return;
       root.dataset.theme = theme;
-      if (meta) meta.content = colors[theme] ?? colors.light;
+      const color = cssVar(tokens[theme] ?? tokens.light);
+      if (meta && color) meta.content = color;
     };
 
     const triggers = sections.map((section) =>
@@ -47,6 +51,14 @@ export default function ThemeController() {
       root.dataset.theme = "light";
     };
   }, []);
+
+  // Cambiar de idioma cambia la altura de los textos: recalcula todos
+  // los triggers (temas, reveals, parallax) tras el nuevo layout.
+  const { lang } = useLanguage();
+  useEffect(() => {
+    const id = requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => cancelAnimationFrame(id);
+  }, [lang]);
 
   return null;
 }
