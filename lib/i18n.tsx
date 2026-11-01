@@ -36,7 +36,6 @@ const translations: Record<Lang, Dict> = {
     "intro.description":
       "Desarrollador independiente que crea productos digitales, experiencias web y sistemas inteligentes.",
     "intro.available": "Disponible — incorporación inmediata",
-    "intro.scroll": "Scroll",
     "intro.based": "Con base en",
 
     // manifesto
@@ -145,7 +144,6 @@ const translations: Record<Lang, Dict> = {
     "intro.description":
       "Independent developer creating digital products, web experiences and intelligent systems.",
     "intro.available": "Available — immediate start",
-    "intro.scroll": "Scroll",
     "intro.based": "Based in",
 
     "manifesto.label": "Manifesto",

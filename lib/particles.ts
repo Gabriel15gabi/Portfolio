@@ -26,6 +26,13 @@ export type ParticleFieldOptions = {
   maxParticles?: number;
   /** Tamaño del punto en px CSS. */
   size?: number;
+  /**
+   * Fracción del paso de muestreo que ocupa cada punto. Si se indica,
+   * sustituye a `size`: cuando el paso crece (pantallas grandes, para no
+   * pasar de maxParticles) el punto crece con él y la forma conserva la
+   * misma densidad visual.
+   */
+  fill?: number;
   /** Radio de repulsión del puntero en px CSS. */
   radius?: number;
   /** Distancia máxima de dispersión, en fracción del lado mayor. */
@@ -76,6 +83,7 @@ export function createParticleField(
     step: minStep = 4,
     maxParticles = 14000,
     size = 2,
+    fill,
     radius = 90,
     scatterDistance = 0.35,
     startScattered = true,
@@ -92,15 +100,24 @@ export function createParticleField(
   let destroyed = false;
   let scatter = 0;
   let firstBuild = true;
+  let dot = size;
   const pointer = { x: -9999, y: -9999, active: false };
 
+  // Un trazado por color: miles de rect() y un solo fill() cuestan mucho
+  // menos que un fillRect por partícula. Los colores son opacos, así que
+  // la unión de cuadrados se ve igual que pintarlos uno a uno.
   const draw = () => {
     if (!ctx) return;
     ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = baseColor();
-    for (const p of particles) if (!p.accent) ctx.fillRect(p.x, p.y, size, size);
+    ctx.beginPath();
+    for (const p of particles) if (!p.accent) ctx.rect(p.x, p.y, dot, dot);
+    ctx.fill();
     ctx.fillStyle = accentColor();
-    for (const p of particles) if (p.accent) ctx.fillRect(p.x, p.y, size + 0.5, size + 0.5);
+    const a = dot + 0.5;
+    ctx.beginPath();
+    for (const p of particles) if (p.accent) ctx.rect(p.x, p.y, a, a);
+    ctx.fill();
   };
 
   const build = () => {
@@ -128,6 +145,7 @@ export function createParticleField(
     const estimate = opaque * 4; // muestreo 1 de cada 4 píxeles
     let step = minStep;
     while (estimate / (step * step) > maxParticles) step++;
+    dot = fill ? step * fill : size;
 
     const maxD = Math.max(w, h) * scatterDistance;
     const prev = particles;

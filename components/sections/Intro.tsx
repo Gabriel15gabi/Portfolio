@@ -70,17 +70,19 @@ export default function Intro() {
           baseColor: () => getComputedStyle(canvas).color,
           accentColor: () => cssVar("--color-signal") || "#e52b25",
           accentRatio: 0.015,
+          // Densidad: paso mínimo de 4 px (3 en táctil) y cada punto ocupa el
+          // 72 % del paso. Si el tope de partículas obliga a separar más los
+          // puntos (pantallas grandes), crecen con el paso y el nombre se
+          // sigue leyendo igual de compacto.
           step: finePointer ? 4 : 3,
-          maxParticles: finePointer ? 16000 : 7000,
-          size: finePointer ? 2.6 : 2.2,
+          maxParticles: finePointer ? 26000 : 7000,
+          fill: 0.72,
           radius: finePointer ? 110 : 70,
           scatterDistance: 0.45,
           startScattered: true,
           pointerTarget: window,
         });
         name.dataset.particles = "on";
-        // Pista del cursor contextual: el nombre es interactivo, como EXP—01.
-        name.dataset.cursor = "MOVE";
         document.documentElement.classList.add("motion-ok");
 
         const state = { entry: 1, scroll: 0 };
@@ -128,7 +130,6 @@ export default function Intro() {
           st.kill();
           field.destroy();
           delete name.dataset.particles;
-          delete name.dataset.cursor;
           document.documentElement.classList.remove("motion-ok");
         };
       });
@@ -226,23 +227,11 @@ export default function Intro() {
         </h1>
       </div>
 
-      {/* Indicador de scroll */}
-      <div className="label-mono relative mt-6 hidden items-end justify-between md:flex">
+      {/* Pie de la portada (conserva la altura del antiguo indicador de scroll) */}
+      <div className="label-mono relative mt-6 hidden min-h-12 items-end md:flex">
         <span data-intro-fade className="hidden text-muted md:block">
           Frontend — Backend — AI &amp; Automation
         </span>
-        <a
-          href="#manifesto"
-          data-intro-fade
-          data-cursor="↓"
-          className="ml-auto flex items-center gap-3"
-          aria-label={t("intro.scroll")}
-        >
-          <span>{t("intro.scroll")}</span>
-          <span className="relative block h-12 w-[2px] overflow-hidden bg-line/20" aria-hidden>
-            <span className="absolute inset-x-0 top-0 h-1/3 bg-accent animate-probe" />
-          </span>
-        </a>
       </div>
     </section>
   );
