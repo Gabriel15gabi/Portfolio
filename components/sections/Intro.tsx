@@ -79,6 +79,8 @@ export default function Intro() {
           pointerTarget: window,
         });
         name.dataset.particles = "on";
+        // Pista del cursor contextual: el nombre es interactivo, como EXP—01.
+        name.dataset.cursor = "MOVE";
         document.documentElement.classList.add("motion-ok");
 
         const state = { entry: 1, scroll: 0 };
@@ -126,6 +128,7 @@ export default function Intro() {
           st.kill();
           field.destroy();
           delete name.dataset.particles;
+          delete name.dataset.cursor;
           document.documentElement.classList.remove("motion-ok");
         };
       });

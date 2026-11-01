@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Anton, Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import SmoothScroll from "@/components/system/SmoothScroll";
 import Cursor from "@/components/system/Cursor";
@@ -8,25 +8,28 @@ import CookieConsent from "@/components/system/CookieConsent";
 import { LanguageProvider } from "@/lib/i18n";
 import { PROFILE } from "@/lib/content";
 
-const anton = Anton({
-  subsets: ["latin", "latin-ext"],
+/* Fuentes autoalojadas en app/fonts (woff2, subconjunto latin, licencia
+   OFL 1.1). Así la build no descarga nada de Google Fonts: con
+   next/font/google, Turbopack fallaba de forma intermitente al resolver
+   las fuentes durante la compilación. */
+const anton = localFont({
+  src: "./fonts/anton-400.woff2",
   weight: "400",
   variable: "--font-anton",
-  display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "700"],
+const spaceGrotesk = localFont({
+  src: "./fonts/space-grotesk-var.woff2",
+  weight: "300 700",
   variable: "--font-space-grotesk",
-  display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500"],
+const plexMono = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-mono-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-mono-500.woff2", weight: "500", style: "normal" },
+  ],
   variable: "--font-plex-mono",
-  display: "swap",
 });
 
 const TITLE = "Gabriel Rodríguez — Independent Developer";

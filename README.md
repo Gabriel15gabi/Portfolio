@@ -14,6 +14,7 @@ npm run lint
 ```
 app/
   layout.tsx          Fuentes (Anton, Space Grotesk, IBM Plex Mono), metadata SEO, JSON-LD
+  fonts/              Fuentes autoalojadas (woff2, latin) con sus licencias OFL
   page.tsx            Orden de secciones
   globals.css         Tokens de diseño (paleta, tipografía, temas) y utilidades
 lib/
@@ -29,7 +30,7 @@ components/
 
 ## Cómo editar
 
-- **Colores y tipografías:** `@theme` en `app/globals.css`. Los temas `light`, `dark` y `red` se aplican por sección con `data-theme`.
+- **Colores y tipografías:** `@theme` en `app/globals.css`. Los temas `light`, `dark` y `red` se aplican por sección con `data-theme`. Las fuentes se cargan con `next/font/local` desde `app/fonts`, así la build no depende de Google Fonts.
 - **Proyectos:** añade una entrada en `PROJECTS` (`lib/content.ts`) y su descripción en `lib/i18n.tsx`. `layout` elige la composición (`type`, `bleed`, `column`, `block`). Un enlace solo aparece si existe.
 - **Experimentos:** cambia el `status` de un hueco a `"live"` en `EXPERIMENTS` y conecta su componente en `components/sections/Experimental.tsx`.
 - **Formulario:** Web3Forms. La clave puede definirse en `NEXT_PUBLIC_WEB3FORMS_KEY`.
