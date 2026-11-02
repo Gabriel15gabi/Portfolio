@@ -121,7 +121,7 @@ function PieceBleed({ p, t }: { p: Project; t: T }) {
         <Reveal variant="clip" className="md:col-span-10">
           <ProjectMedia src={p.media ?? ""} title={p.title} href={p.demo} className="aspect-[16/10] md:aspect-[16/8.5]" />
         </Reveal>
-        <div className="relative md:col-span-6 md:col-start-6 md:-mt-[9vw]">
+        <div className="relative md:col-span-7 md:col-start-6 md:-mt-[9vw]">
           <Title id={`p-${p.slug}`} className="text-[19vw] [-webkit-text-stroke:0.07em_var(--bg)] [paint-order:stroke_fill] md:text-[13vw]">{p.title}</Title>
         </div>
       </div>
@@ -226,9 +226,9 @@ const LAYOUTS = {
 export default function Work() {
   const { t } = useLanguage();
   return (
-    <section id="work" data-theme="light" aria-labelledby="work-title" className="relative overflow-clip pb-32">
+    <section id="work" data-theme="light" aria-labelledby="work-title" className="relative overflow-clip pb-20 md:pb-32">
       <SectionHeader num="01" title="Selected Work" label={t("work.label")} meta={t("work.meta")} id="work-title" />
-      <div className="mt-16 flex flex-col gap-32 px-4 sm:px-8 md:mt-24 md:gap-48 lg:px-12">
+      <div className="mt-16 flex flex-col gap-24 px-4 sm:px-8 md:mt-24 md:gap-48 lg:px-12">
         {PROJECTS.map((p) => {
           // Las composiciones con imagen necesitan media; sin ella, tipográfica.
           const Piece = p.media ? LAYOUTS[p.layout] : PieceType;

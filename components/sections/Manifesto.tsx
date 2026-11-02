@@ -81,11 +81,11 @@ export default function Manifesto() {
       id="manifesto"
       data-theme="dark"
       aria-label={t("manifesto.label")}
-      className="relative overflow-clip px-4 pb-28 sm:px-8 md:pb-40 lg:px-12"
+      className="relative overflow-clip px-4 pb-20 sm:px-8 md:pb-40 lg:px-12"
     >
       <Tape />
 
-      <div className="mt-24 grid gap-8 md:mt-36 md:grid-cols-12">
+      <div className="mt-16 grid gap-8 md:mt-36 md:grid-cols-12">
         <p className="label-mono md:col-span-3">
           <span className="text-accent">✕</span> {t("manifesto.label")}
         </p>

@@ -57,7 +57,7 @@ export default function Experimental() {
   const slots = EXPERIMENTS.filter((e) => e.status === "slot");
 
   return (
-    <section id="lab" data-theme="dark" aria-labelledby="lab-title" className="relative overflow-clip pb-32">
+    <section id="lab" data-theme="dark" aria-labelledby="lab-title" className="relative overflow-clip pb-20 md:pb-32">
       <SectionHeader num="02" title="Experimental Zone" label={t("exp.label")} meta="Canvas · WebGL · AI" id="lab-title" />
 
       <div className="mt-12 grid gap-10 px-4 sm:px-8 md:mt-16 md:grid-cols-12 lg:px-12">

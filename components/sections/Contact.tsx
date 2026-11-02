@@ -5,6 +5,7 @@ import Image from "next/image";
 import Reveal, { Line } from "@/components/ui/Reveal";
 import { KineticLine } from "@/components/ui/Kinetic";
 import { PROFILE } from "@/lib/content";
+import Coords from "@/components/ui/Coords";
 import { useLanguage } from "@/lib/i18n";
 import { useLenis } from "lenis/react";
 import { prefersReducedMotion } from "@/lib/env";
@@ -91,7 +92,7 @@ export default function Contact() {
       id="contact"
       data-theme="red"
       aria-labelledby="contact-title"
-      className="relative flex min-h-[100svh] flex-col overflow-clip px-4 pt-24 sm:px-8 md:pt-36 lg:px-12"
+      className="relative flex min-h-[100svh] flex-col overflow-clip px-4 pt-20 sm:px-8 md:pt-36 lg:px-12"
     >
       <div className="label-mono flex items-center justify-between border-t-2 border-fg pt-3">
         <span>
@@ -104,7 +105,7 @@ export default function Contact() {
       </div>
 
       {/* Cierre monumental */}
-      <Reveal as="h2" id="contact-title" className="display mt-10 text-[clamp(4rem,15.5vw,16rem)] md:mt-14">
+      <Reveal as="h2" id="contact-title" className="display mt-10 text-[clamp(min(4rem,16.8vw),15.5vw,16rem)] md:mt-14">
         <KineticLine drift={6}>
           <Line>Have a good</Line>
         </KineticLine>
@@ -132,7 +133,7 @@ export default function Contact() {
               onClick={copyEmail}
               data-cursor="COPY"
               aria-live="polite"
-              className="label-mono mt-3 block border-2 border-ink px-3 py-2 transition-colors hover:bg-ink hover:text-paper"
+              className="label-mono mt-3 block border-2 border-ink px-3 py-3 transition-colors hover:bg-ink hover:text-paper md:py-2"
             >
               {copied ? `${t("contact.copied")} ✓` : t("contact.copy")}
             </button>
@@ -183,7 +184,7 @@ export default function Contact() {
           </div>
 
           <p className="label-mono">
-            {PROFILE.location[lang]} — {PROFILE.coords}
+            {PROFILE.location[lang]} — <Coords />
           </p>
         </div>
 
@@ -264,7 +265,7 @@ export default function Contact() {
             if (lenis) lenis.scrollTo(0, prefersReducedMotion() ? { immediate: true } : { duration: 1.6 });
             else window.scrollTo(0, 0);
           }}
-          className="link-sweep w-fit"
+          className="link-sweep w-fit before:absolute before:inset-x-0 before:-inset-y-4"
         >
           {t("contact.top")} ↑
         </a>

@@ -48,7 +48,7 @@ function LangToggle({ className = "" }: { className?: string }) {
           <button
             onClick={() => setLang(l)}
             aria-pressed={lang === l}
-            className={`px-1 py-1 transition-colors ${
+            className={`relative px-1 py-1 transition-colors before:absolute before:-inset-x-1 before:-inset-y-3 ${
               lang === l ? "text-accent" : "opacity-50 hover:opacity-100"
             }`}
           >
@@ -208,7 +208,7 @@ export default function Nav() {
           <a
             href="#top"
             onClick={(e) => go(e, "#top")}
-            className="group flex items-baseline gap-3"
+            className="group relative flex items-baseline gap-3 before:absolute before:-inset-2"
             aria-label="Gabriel Rodríguez — inicio"
           >
             <span className="display text-[1.9rem] leading-none tracking-tight">
@@ -236,7 +236,7 @@ export default function Nav() {
               aria-expanded={open}
               aria-controls="site-menu"
               data-cursor={open ? t("nav.close") : t("nav.menu")}
-              className="group label-mono flex items-center gap-3 border-2 border-current px-3 py-2 transition-colors hover:bg-accent hover:text-paper hover:border-accent"
+              className="group label-mono relative flex items-center gap-3 border-2 border-current px-3 py-2 transition-colors before:absolute before:-inset-[6px] hover:bg-accent hover:text-paper hover:border-accent"
             >
               <span>{open ? t("nav.close") : t("nav.menu")}</span>
               <span className="relative block h-2.5 w-4" aria-hidden>
@@ -286,7 +286,7 @@ export default function Nav() {
                   <span className="mask-line">
                     <span
                       data-menu-line
-                      className="display block text-[clamp(3rem,10.5vh,8.5rem)] transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-x-6 md:group-hover:translate-x-12"
+                      className="display block text-[clamp(2.5rem,min(10.5vh,15vw),8.5rem)] transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-x-6 md:group-hover:translate-x-12"
                     >
                       {t(l.key)}
                     </span>
@@ -306,11 +306,11 @@ export default function Nav() {
           data-menu-fade
           className="label-mono relative grid grid-cols-2 gap-4 border-t border-line px-4 py-5 sm:px-8 md:grid-cols-4 lg:px-12"
         >
-          <a href={`mailto:${PROFILE.email}`} className="link-sweep col-span-2 w-fit break-all">
+          <a href={`mailto:${PROFILE.email}`} className="link-sweep col-span-2 w-fit break-all before:absolute before:inset-x-0 before:-inset-y-3">
             {PROFILE.email}
           </a>
           {PROFILE.links.map((l) => (
-            <a key={l.label} href={l.href} target="_blank" rel="noreferrer" className="link-sweep w-fit">
+            <a key={l.label} href={l.href} target="_blank" rel="noreferrer" className="link-sweep w-fit before:absolute before:inset-x-0 before:-inset-y-3">
               {l.label} ↗
             </a>
           ))}

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { acceptCookies, collectErrors, scrollToSelector, waitForApp } from "./helpers";
 
 const PROJECTS = [
@@ -239,40 +239,76 @@ test.describe("Cookies", () => {
   });
 });
 
-test.describe("Partículas del nombre", () => {
-  test("el nombre se dibuja en partículas sobre el canvas", async ({ page }) => {
+test.describe("Responsive", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  /** Textos más anchos que su caja con overflow recortado (sin contar la cinta animada). */
+  const clippedTexts = (page: Page) =>
+    page.evaluate(() => {
+      const out: string[] = [];
+      for (const el of document.querySelectorAll<HTMLElement>("body *")) {
+        if (el.closest(".animate-ticker") || el.querySelector(".animate-ticker")) continue;
+        if (!/(clip|hidden)/.test(getComputedStyle(el).overflowX)) continue;
+        const text = (el.textContent || "").trim().replace(/\s+/g, " ");
+        if (text && el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 2) out.push(text.slice(0, 40));
+      }
+      return out;
+    });
+
+  for (const width of [320, 390, 768, 1024]) {
+    test(`a ${width} px ningún texto queda cortado (página y menú)`, async ({ page, isMobile }) => {
+      test.skip(isMobile, "Recorre los anchos él mismo");
+      await page.setViewportSize({ width, height: 800 });
+      await acceptCookies(page);
+      await page.goto("/");
+      await waitForApp(page);
+      expect(await clippedTexts(page)).toEqual([]);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+      ).toBeLessThanOrEqual(1);
+
+      await page.locator('button[aria-controls="site-menu"]').click();
+      await expect(page.locator("#site-menu a").first()).toBeVisible();
+      expect(await clippedTexts(page)).toEqual([]);
+    });
+  }
+});
+
+test.describe("Nombre de la portada", () => {
+  test("las letras suben desde su máscara y el nombre queda visible", async ({ page }) => {
     await acceptCookies(page);
     await page.goto("/");
     await waitForApp(page);
-    await expect(page.locator("[data-intro-name]")).toHaveAttribute("data-particles", "on");
-    // El canvas tiene píxeles pintados una vez ensamblado.
+    const name = page.locator("[data-intro-name]");
+    await expect(name).toBeVisible();
+    // Tras la entrada, todas las letras están en su sitio (sin desplazamiento vertical).
     await expect
       .poll(
         () =>
-          page.evaluate(() => {
-            const c = document.querySelector<HTMLCanvasElement>("#top canvas")!;
-            const d = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
-            let n = 0;
-            for (let i = 3; i < d.length; i += 64) if (d[i] > 0) n++;
-            return n;
-          }),
+          name.evaluate((h1) =>
+            [...h1.querySelectorAll<HTMLElement>("[data-char]")].every((c) => {
+              const t = getComputedStyle(c).transform;
+              return t === "none" || Math.abs(new DOMMatrix(t).m42) < 1;
+            })
+          ),
         { timeout: 6000 }
       )
-      .toBeGreaterThan(200);
+      .toBe(true);
+    await expect(page.locator("#top canvas")).toHaveCount(0);
   });
 });
 
 test.describe("prefers-reduced-motion", () => {
   test.use({ colorScheme: "light" });
 
-  test("sin intro, sin partículas y con el nombre visible en texto", async ({ page }) => {
+  test("sin intro y con el nombre visible desde el principio", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     const errors = collectErrors(page);
     await acceptCookies(page);
     await page.goto("/");
     await waitForApp(page);
     await expect(page.locator(".boot-screen")).toHaveCount(0);
-    await expect(page.locator("[data-intro-name]")).not.toHaveAttribute("data-particles", "on");
+    await expect(page.locator("[data-intro-name]")).toBeVisible();
     const color = await page
       .locator("[data-intro-name] [data-char]")
       .first()

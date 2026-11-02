@@ -19,7 +19,7 @@ export default function SectionHeader({
   id?: string;
 }) {
   return (
-    <header className="relative px-4 pt-24 sm:px-8 md:pt-36 lg:px-12">
+    <header className="relative px-4 pt-20 sm:px-8 md:pt-36 lg:px-12">
       {/* Barra técnica superior */}
       <div className="label-mono flex items-center justify-between border-t-2 border-fg pt-3">
         <span>
@@ -38,7 +38,7 @@ export default function SectionHeader({
         </span>
 
         <Reveal>
-          <h2 id={id} className="display relative text-[clamp(3.6rem,13vw,13rem)]">
+          <h2 id={id} className="display relative text-[clamp(min(3.6rem,16.5vw),13vw,13rem)]">
             <KineticLine drift={8}>
               <Line>{title}</Line>
             </KineticLine>

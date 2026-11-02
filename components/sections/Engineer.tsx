@@ -13,7 +13,7 @@ export default function Engineer() {
   const { t, lang } = useLanguage();
 
   return (
-    <section id="engineer" data-theme="light" aria-labelledby="eng-title" className="relative overflow-clip pb-32">
+    <section id="engineer" data-theme="light" aria-labelledby="eng-title" className="relative overflow-clip pb-20 md:pb-32">
       <SectionHeader num="03" title="The Engineer" label={t("eng.label")} meta="Frontend — Backend — AI" id="eng-title" />
 
       <div className="mt-12 grid gap-10 px-4 sm:px-8 md:mt-20 md:grid-cols-12 md:gap-x-6 lg:px-12">
@@ -45,11 +45,11 @@ export default function Engineer() {
             {t("eng.bio")}
           </p>
 
-          <ol className="mt-12 grid gap-0 border-t-2 border-fg md:grid-cols-3">
+          <ol className="mt-12 grid gap-0 border-t-2 border-fg xl:grid-cols-3">
             {PILLARS.map((k, i) => (
               <li
                 key={k}
-                className="border-b border-fg py-5 md:border-b-0 md:border-r md:px-5 md:first:pl-0 md:last:border-r-0"
+                className="border-b border-fg py-5 xl:border-b-0 xl:border-r xl:px-5 xl:first:pl-0 xl:last:border-r-0"
               >
                 <span className="label-mono text-accent">0{i + 1}</span>
                 <h3 className="mt-2 text-2xl font-bold uppercase tracking-tight">{t(`eng.${k}.title`)}</h3>
@@ -73,11 +73,11 @@ export default function Engineer() {
             {STACK.map((cat, i) => (
               <div
                 key={cat.key}
-                className="group/spec grid grid-cols-[3rem_1fr] gap-x-4 gap-y-2 border-b border-fg py-5 transition-colors duration-300 hover:bg-fg hover:text-bg md:grid-cols-[3rem_14rem_1fr] md:px-3"
+                className="group/spec grid grid-cols-[3rem_1fr] gap-x-4 gap-y-2 border-b border-fg py-5 transition-colors duration-300 hover:bg-fg hover:text-bg md:px-3 xl:grid-cols-[3rem_14rem_1fr]"
               >
                 <span className="label-mono pt-1 text-accent">{String(i + 1).padStart(2, "0")}</span>
                 <dt className="label-mono pt-1">{t(`eng.cat.${cat.key}`)}</dt>
-                <dd className="col-start-2 text-xl font-medium leading-tight md:col-start-3 md:text-2xl">
+                <dd className="col-start-2 text-xl font-medium leading-tight md:text-2xl xl:col-start-3">
                   {cat.items.map((it, j) => (
                     <span key={it}>
                       <span className="whitespace-nowrap">

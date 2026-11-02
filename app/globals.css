@@ -191,11 +191,10 @@ body::after {
 
 /* ── Estado inicial de la portada (antes del primer pintado) ──
    El script inline de BootSequence añade .motion-ok cuando hay
-   movimiento: así el nombre (que pasa a dibujarse en partículas) y
-   los textos que entran animados no parpadean visibles al hidratar. */
-html.motion-ok [data-intro-name] [data-char],
-[data-intro-name][data-particles="on"] [data-char] {
-  color: transparent;
+   movimiento: así el nombre y los textos que entran animados no
+   parpadean visibles al hidratar (GSAP los muestra al animarlos). */
+html.motion-ok [data-intro-name] {
+  visibility: hidden;
 }
 html.motion-ok [data-intro-fade] {
   opacity: 0;
