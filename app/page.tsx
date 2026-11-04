@@ -1,21 +1,23 @@
-import Hero from "@/components/Hero";
-import AboutMe from "@/components/AboutMe";
-import SkillsMarquee from "@/components/SkillsMarquee";
-import Projects from "@/components/Projects";
-import Contact from "@/components/Contact";
-import TextRevealSection from "@/components/TextRevealSection";
-import ClientLoader from "@/components/ClientLoader";
+import Nav from "@/components/system/Nav";
+import BootSequence from "@/components/system/BootSequence";
+import Intro from "@/components/sections/Intro";
+import Manifesto from "@/components/sections/Manifesto";
+import Work from "@/components/sections/Work";
+import Experimental from "@/components/sections/Experimental";
+import Engineer from "@/components/sections/Engineer";
+import Contact from "@/components/sections/Contact";
 
 export default function Page() {
   return (
     <>
-      <ClientLoader />
-      <main id="main-scroll" className="relative">
-        <Hero />
-        <AboutMe />
-        <TextRevealSection />
-        <SkillsMarquee />
-        <Projects />
+      <BootSequence />
+      <Nav />
+      <main id="main" className="relative">
+        <Intro />
+        <Manifesto />
+        <Work />
+        <Experimental />
+        <Engineer />
         <Contact />
       </main>
     </>

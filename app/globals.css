@@ -1,65 +1,246 @@
 @import "tailwindcss";
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ═══════════════════════════════════════════════════════════
+   BRUTALIST DIGITAL OBJECT — DESIGN TOKENS
+   Toda la paleta y la tipografía se controlan desde aquí.
+   ═══════════════════════════════════════════════════════════ */
+@theme {
+  /* Paleta base */
+  --color-paper: #f0efe9;
+  --color-ink: #111111;
+  --color-signal: #e52b25;
+  --color-concrete: #c6c5bf;
+  --color-industrial: #263f39;
+  --color-warning: #f3d94b;
+
+
+  /* Curvas */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-brutal: cubic-bezier(0.7, 0, 0.2, 1);
 }
 
-html,
-body {
-  width: 100%;
-  min-height: 100%;
-  background: #030303;
-  color: white;
+/* Tokens semánticos (inline: se resuelven en cada elemento, así
+   un bloque con .theme-red dentro de una sección oscura funciona). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+
+  --font-display: var(--font-anton), "Arial Narrow", Impact, sans-serif;
+  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+/* ── Temas ──────────────────────────────────────────────────
+   Sin JS: cada sección pinta su propio fondo (data-theme).
+   Con JS: ThemeController añade .theme-js al <html> y cambia
+   html[data-theme] según la sección en el centro del viewport;
+   el fondo de toda la página transiciona entre superficies. */
+:root,
+.theme-light,
+html:not(.theme-js) [data-theme="light"] {
+  --bg: var(--color-paper);
+  --fg: var(--color-ink);
+  --accent: var(--color-signal);
+  --muted: color-mix(in srgb, var(--color-ink) 58%, transparent);
+  --line: var(--color-ink);
+  --cursor: var(--color-signal);
+}
+
+.theme-dark,
+html:not(.theme-js) [data-theme="dark"],
+html.theme-js[data-theme="dark"] {
+  --bg: var(--color-ink);
+  --fg: var(--color-paper);
+  --accent: var(--color-signal);
+  --muted: color-mix(in srgb, var(--color-paper) 55%, transparent);
+  --line: color-mix(in srgb, var(--color-paper) 30%, transparent);
+}
+
+.theme-red,
+html:not(.theme-js) [data-theme="red"],
+html.theme-js[data-theme="red"] {
+  --bg: var(--color-signal);
+  --fg: var(--color-ink);
+  --accent: var(--color-paper);
+  --muted: color-mix(in srgb, var(--color-ink) 70%, transparent);
+  --line: var(--color-ink);
+  --cursor: var(--color-ink);
+}
+
+html:not(.theme-js) [data-theme],
+.theme-light,
+.theme-dark,
+.theme-red {
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+/* ── Base ──────────────────────────────────────────────── */
+html {
+  background-color: var(--bg);
+  color: var(--fg);
   overflow-x: clip;
-  cursor: none;
+  -webkit-text-size-adjust: 100%;
+  transition:
+    background-color 0.7s var(--ease-brutal),
+    color 0.7s var(--ease-brutal);
 }
 
 body {
-  position: relative;
+  min-height: 100%;
+  overflow-x: clip;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-@media (pointer: coarse) {
-  html,
-  body {
-    cursor: auto;
-  }
+/* Cursor nativo oculto solo cuando el cursor propio está activo */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
 }
 
-/* Film grain — reduced opacity for performance */
+::selection {
+  background: var(--color-signal);
+  color: var(--color-paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Grano de impresión — muy sutil, solo textura */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 9998;
+  z-index: 9990;
   pointer-events: none;
-  opacity: 0.02;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 150px 150px;
-}
-
-::selection {
-  background: rgba(239, 68, 68, 0.3);
-  color: white;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--bg);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(239, 68, 68, 0.15);
-  border-radius: 2px;
+  background: var(--color-signal);
 }
 
-/* Marquee */
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+/* ── Utilidades del sistema ─────────────────────────────── */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--fg);
+}
+
+/* Retícula técnica de fondo */
+@utility grid-lines {
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: calc(100% / 12) 100%, 100% 8rem;
+}
+
+/* Contenedor de máscara para reveals */
+@utility mask-line {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.04em;
+}
+
+/* Subrayado mecánico de enlaces: barra que barre de izq. a der. */
+@utility link-sweep {
+  position: relative;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 100% 100%;
+  background-size: 0% 2px;
+  transition: background-size 0.45s var(--ease-expo);
+
+  &:hover,
+  &:focus-visible {
+    background-position: 0% 100%;
+    background-size: 100% 2px;
+  }
+}
+
+/* ── Estado inicial de la portada (antes del primer pintado) ──
+   El script inline de BootSequence añade .motion-ok cuando hay
+   movimiento: así el nombre y los textos que entran animados no
+   parpadean visibles al hidratar (GSAP los muestra al animarlos). */
+html.motion-ok [data-intro-name] {
+  visibility: hidden;
+}
+html.motion-ok [data-intro-fade] {
+  opacity: 0;
+}
+html.motion-ok [data-intro-block] {
+  transform: scaleX(0);
+}
+
+/* ── Animaciones CSS ─────────────────────────────────────── */
+@keyframes ticker {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.animate-ticker {
+  animation: ticker 38s linear infinite;
+}
+.animate-blink {
+  animation: blink 1.1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
