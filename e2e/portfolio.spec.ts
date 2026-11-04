@@ -359,33 +359,61 @@ test.describe("Nombre de la portada", () => {
 });
 
 test.describe("Portada en móvil", () => {
-  test.use({ reducedMotion: "reduce" });
-
   for (const width of [316, 390]) {
-    test(`a ${width} px el bloque rojo y los datos no pisan el nombre`, async ({ page, isMobile }) => {
+    test(`a ${width} px el nombre va sobre la banda roja y nada se pisa`, async ({ page, isMobile }) => {
       test.skip(!isMobile, "Composición de móvil");
+      await page.emulateMedia({ reducedMotion: "reduce" });
       await page.setViewportSize({ width, height: 858 });
       await acceptCookies(page);
       await page.goto("/");
       await waitForApp(page);
-      const block = await page.locator('[data-intro-block="m"]').boundingBox();
-      const name = await page.locator("[data-intro-name]").boundingBox();
-      const tagline = await page.locator("[data-intro-tagline]").first().boundingBox();
-      expect(block && name && tagline).toBeTruthy();
-      // El bloque rojo queda entre el texto y el nombre, sin tocar ninguno.
-      expect(block!.y).toBeGreaterThanOrEqual(tagline!.y + tagline!.height);
-      expect(block!.y + block!.height).toBeLessThanOrEqual(name!.y);
-      // El bloque de escritorio no se muestra en móvil.
+      const band = (await page.locator('[data-intro-block="m"]').boundingBox())!;
+      const name = (await page.locator("[data-intro-name]").boundingBox())!;
+      const text = (await page.locator("[data-intro-tagline]").boundingBox())!;
+      // Banda a sangre, de borde a borde.
+      expect(Math.round(band.x)).toBe(0);
+      expect(Math.round(band.x + band.width)).toBe(width);
+      // El nombre entero dentro de la banda, y la banda por debajo del texto.
+      expect(name.y).toBeGreaterThanOrEqual(band.y);
+      expect(name.y + name.height).toBeLessThanOrEqual(band.y + band.height);
+      expect(band.y).toBeGreaterThanOrEqual(text.y + text.height);
+      // El bloque rojo de escritorio no se muestra en móvil.
       await expect(page.locator('#top [data-intro-block]:not([data-intro-block="m"])')).toBeHidden();
-      // La fila de metadatos ocupa dos líneas: sección + ciudad, y disponibilidad.
-      const lines = await page.evaluate(() => {
-        const row = document.querySelector<HTMLElement>("#top .label-mono.grid")!;
-        const lh = parseFloat(getComputedStyle(row).lineHeight);
-        return [...row.children].map((c) => Math.round((c as HTMLElement).getBoundingClientRect().height / lh));
-      });
-      expect(lines).toEqual([1, 1, 1]);
+      // Sección y ciudad comparten una sola línea.
+      const [label, city] = await page
+        .locator("#top .label-mono.grid > span")
+        .evaluateAll((els) => els.slice(0, 2).map((e) => e.getBoundingClientRect()).map((r) => [r.top, r.height]));
+      expect(Math.abs(city[0] - label[0])).toBeLessThan(1);
+      expect(Math.abs(city[1] - label[1])).toBeLessThan(1);
     });
   }
+
+  test("con el inglés guardado, la banda muestra las tres disciplinas", async ({ page, isMobile }) => {
+    test.skip(!isMobile, "Composición de móvil");
+    // Visita de vuelta: idioma guardado y la intro de carga ya vista en la sesión.
+    await page.addInitScript(() => {
+      localStorage.setItem("cookie-consent", "accepted");
+      localStorage.setItem("lang", "en");
+      sessionStorage.setItem("gr-boot", "1");
+    });
+    await page.goto("/");
+    await waitForApp(page);
+    // Al cambiar de idioma tras hidratar, el elemento se vuelve a montar:
+    // no puede quedarse oculto esperando una animación de entrada que ya pasó.
+    const item = page.locator("#top li", { hasText: "AI & Automation" });
+    await expect
+      .poll(
+        () =>
+          item.evaluate((el) => {
+            for (let n: Element | null = el; n; n = n.parentElement) {
+              if (getComputedStyle(n).opacity === "0") return "oculto";
+            }
+            return "visible";
+          }),
+        { timeout: 8000 }
+      )
+      .toBe("visible");
+  });
 });
 
 test.describe("prefers-reduced-motion", () => {

@@ -76,7 +76,7 @@ export default function Intro() {
 
         // 3 · Parallax asimétrico de bloques secundarios.
         gsap.to("[data-intro-block]", {
-          yPercent: (_i: number, el: HTMLElement) => (el.dataset.introBlock === "m" ? -30 : -60),
+          yPercent: (_i: number, el: HTMLElement) => (el.dataset.introBlock === "m" ? 0 : -60),
           ease: "none",
           scrollTrigger: { trigger: root, start: "top top", end: "bottom top", scrub: true },
         });
@@ -103,7 +103,7 @@ export default function Intro() {
       id="top"
       data-theme="light"
       aria-labelledby="intro-title"
-      className="relative flex min-h-[100svh] flex-col overflow-clip px-4 pb-6 pt-20 sm:px-8 md:pt-24 lg:px-12"
+      className="relative flex flex-col overflow-clip px-4 pt-20 sm:px-8 md:min-h-[100svh] md:pb-6 md:pt-24 lg:px-12"
     >
       {/* Retícula técnica */}
       <div className="grid-lines pointer-events-none absolute inset-0 opacity-[0.06]" aria-hidden />
@@ -153,28 +153,23 @@ export default function Intro() {
         </p>
       </div>
 
-      {/* Móvil: el espacio libre entre el texto y el nombre es del bloque rojo
-          (crece con la pantalla) y de las disciplinas, en vez de quedar vacío. */}
-      <div className="relative min-h-[7.5rem] flex-1 md:hidden">
+      {/* Composición monumental. En móvil, el nombre va sobre una banda roja
+          a sangre (como un cartel); en escritorio, sobre el papel. */}
+      <div className="relative -mx-4 mt-12 px-4 pb-7 pt-5 sm:-mx-8 sm:px-8 md:mx-0 md:mt-0 md:p-0">
         <div
           data-intro-block="m"
           aria-hidden
-          className="absolute bottom-6 right-0 top-8 w-[40%] origin-right bg-signal"
+          className="absolute inset-0 origin-right bg-signal md:hidden"
         />
-        {/* Sube con el texto al hacer scroll: las letras del nombre no la pisan. */}
-        <div data-intro-tagline className="absolute bottom-6 left-0 max-w-[55%]">
-          <ul data-intro-fade className="label-mono space-y-1">
-            {t("intro.disciplines")
-              .split(" — ")
-              .map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Composición monumental */}
-      <div className="relative">
+        {/* data-intro-fade va en la lista y no en cada elemento: al cambiar de
+            idioma los <li> se vuelven a montar y GSAP ya no los vería. */}
+        <ul data-intro-fade className="label-mono relative mb-6 flex flex-wrap gap-x-4 gap-y-1 text-ink md:hidden">
+          {t("intro.disciplines")
+            .split(" — ")
+            .map((d) => (
+              <li key={d}>{d}</li>
+            ))}
+        </ul>
         {/* Bloque rojo geométrico (escritorio) */}
         <div
           data-intro-block
@@ -191,7 +186,7 @@ export default function Intro() {
             className="block whitespace-nowrap mt-[0.34em] text-[19.5vw] leading-[0.8] tracking-[-0.015em] md:ml-[12vw] md:mt-0 md:text-[16.4vw]"
           >
             <Chars text={LAST} speeds={SPEEDS_LAST} />
-            <span className="inline-block text-accent">
+            <span className="inline-block text-paper md:text-accent">
               <Chars text="." speeds={[0.6]} />
             </span>
           </span>
