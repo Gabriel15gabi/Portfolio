@@ -358,6 +358,36 @@ test.describe("Nombre de la portada", () => {
   });
 });
 
+test.describe("Portada en móvil", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  for (const width of [316, 390]) {
+    test(`a ${width} px el bloque rojo y los datos no pisan el nombre`, async ({ page, isMobile }) => {
+      test.skip(!isMobile, "Composición de móvil");
+      await page.setViewportSize({ width, height: 858 });
+      await acceptCookies(page);
+      await page.goto("/");
+      await waitForApp(page);
+      const block = await page.locator('[data-intro-block="m"]').boundingBox();
+      const name = await page.locator("[data-intro-name]").boundingBox();
+      const tagline = await page.locator("[data-intro-tagline]").first().boundingBox();
+      expect(block && name && tagline).toBeTruthy();
+      // El bloque rojo queda entre el texto y el nombre, sin tocar ninguno.
+      expect(block!.y).toBeGreaterThanOrEqual(tagline!.y + tagline!.height);
+      expect(block!.y + block!.height).toBeLessThanOrEqual(name!.y);
+      // El bloque de escritorio no se muestra en móvil.
+      await expect(page.locator('#top [data-intro-block]:not([data-intro-block="m"])')).toBeHidden();
+      // La fila de metadatos ocupa dos líneas: sección + ciudad, y disponibilidad.
+      const lines = await page.evaluate(() => {
+        const row = document.querySelector<HTMLElement>("#top .label-mono.grid")!;
+        const lh = parseFloat(getComputedStyle(row).lineHeight);
+        return [...row.children].map((c) => Math.round((c as HTMLElement).getBoundingClientRect().height / lh));
+      });
+      expect(lines).toEqual([1, 1, 1]);
+    });
+  }
+});
+
 test.describe("prefers-reduced-motion", () => {
   test.use({ colorScheme: "light" });
 

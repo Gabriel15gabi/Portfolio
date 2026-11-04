@@ -76,7 +76,7 @@ export default function Intro() {
 
         // 3 · Parallax asimétrico de bloques secundarios.
         gsap.to("[data-intro-block]", {
-          yPercent: -60,
+          yPercent: (_i: number, el: HTMLElement) => (el.dataset.introBlock === "m" ? -30 : -60),
           ease: "none",
           scrollTrigger: { trigger: root, start: "top top", end: "bottom top", scrub: true },
         });
@@ -108,23 +108,27 @@ export default function Intro() {
       {/* Retícula técnica */}
       <div className="grid-lines pointer-events-none absolute inset-0 opacity-[0.06]" aria-hidden />
 
-      {/* Fila de metadatos */}
-      <div className="label-mono relative grid grid-cols-2 gap-x-4 gap-y-2 border-t-2 border-fg pt-3 md:grid-cols-12">
+      {/* Fila de metadatos. En móvil: sección y ciudad en una línea y la
+          disponibilidad debajo; «Con base en» y las coordenadas, desde tablet. */}
+      <div className="label-mono relative grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 border-t-2 border-fg pt-3 md:grid-cols-12">
         <span data-intro-fade className="md:col-span-3">
           <span className="text-accent">§00</span> — {t("intro.label")}
         </span>
         <span data-intro-fade className="text-right md:col-span-4 md:col-start-5 md:text-left">
-          {t("intro.based")} {PROFILE.location[lang]}
-          <br />
-          <span className="text-muted">
-            <Coords />
+          <span className="hidden md:inline">{t("intro.based")} </span>
+          {PROFILE.location[lang]}
+          <span className="hidden md:inline">
+            <br />
+            <span className="text-muted">
+              <Coords />
+            </span>
           </span>
         </span>
         <span
           data-intro-fade
-          className="col-span-2 flex items-center gap-2 md:col-span-4 md:col-start-9 md:justify-end"
+          className="col-span-2 flex items-start gap-2 max-[359px]:tracking-[0.05em] md:col-span-4 md:col-start-9 md:items-center md:justify-end"
         >
-          <span className="relative flex h-2.5 w-2.5">
+          <span className="relative mt-[0.2em] flex h-2.5 w-2.5 shrink-0 md:mt-0">
             <span className="absolute inset-0 bg-accent animate-blink" />
           </span>
           {t("intro.available")}
@@ -134,7 +138,7 @@ export default function Intro() {
       {/* Zona media: tagline + descripción (desktop) */}
       <div
         data-intro-tagline
-        className="relative mt-auto grid gap-5 pt-10 md:grid-cols-12 md:items-end md:gap-6 md:pb-12 md:pt-0"
+        className="relative grid gap-5 pt-12 md:mt-auto md:grid-cols-12 md:items-end md:gap-6 md:pb-12 md:pt-0"
       >
         <p
           data-intro-fade
@@ -149,13 +153,33 @@ export default function Intro() {
         </p>
       </div>
 
+      {/* Móvil: el espacio libre entre el texto y el nombre es del bloque rojo
+          (crece con la pantalla) y de las disciplinas, en vez de quedar vacío. */}
+      <div className="relative min-h-[7.5rem] flex-1 md:hidden">
+        <div
+          data-intro-block="m"
+          aria-hidden
+          className="absolute bottom-6 right-0 top-8 w-[40%] origin-right bg-signal"
+        />
+        {/* Sube con el texto al hacer scroll: las letras del nombre no la pisan. */}
+        <div data-intro-tagline className="absolute bottom-6 left-0 max-w-[55%]">
+          <ul data-intro-fade className="label-mono space-y-1">
+            {t("intro.disciplines")
+              .split(" — ")
+              .map((d) => (
+                <li key={d}>{d}</li>
+              ))}
+          </ul>
+        </div>
+      </div>
+
       {/* Composición monumental */}
-      <div className="relative mt-auto pt-10 md:mt-0 md:pt-0">
-        {/* Bloque rojo geométrico */}
+      <div className="relative">
+        {/* Bloque rojo geométrico (escritorio) */}
         <div
           data-intro-block
           aria-hidden
-          className="absolute right-0 top-[-14%] h-[46%] w-[30%] origin-right bg-signal md:right-0 md:top-[-34%] md:h-[66%] md:w-[24%]"
+          className="absolute right-0 top-[-34%] hidden h-[66%] w-[24%] origin-right bg-signal md:block"
         />
 
         <h1 id="intro-title" data-intro-name className="display relative select-none" aria-label={PROFILE.name}>
@@ -164,7 +188,7 @@ export default function Intro() {
           </span>
           <span
             aria-hidden
-            className="block whitespace-nowrap mt-[0.2em] text-[19.5vw] leading-[0.8] tracking-[-0.015em] md:ml-[12vw] md:mt-0 md:text-[16.4vw]"
+            className="block whitespace-nowrap mt-[0.34em] text-[19.5vw] leading-[0.8] tracking-[-0.015em] md:ml-[12vw] md:mt-0 md:text-[16.4vw]"
           >
             <Chars text={LAST} speeds={SPEEDS_LAST} />
             <span className="inline-block text-accent">
