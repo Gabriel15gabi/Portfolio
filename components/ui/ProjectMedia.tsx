@@ -16,14 +16,15 @@ export default function ProjectMedia({
   src,
   title,
   href,
+  t,
   className = "",
-  cursor = "PLAY",
 }: {
   src: string;
   title: string;
   href: string | null;
+  /** Traductor del idioma activo (etiqueta del cursor y del enlace). */
+  t: (key: string) => string;
   className?: string;
-  cursor?: string;
 }) {
   const filterId = `distort-${useId().replace(/:/g, "")}`;
   const wrapRef = useRef<HTMLAnchorElement & HTMLDivElement>(null);
@@ -105,14 +106,14 @@ export default function ProjectMedia({
 
   const Tag = (href ? "a" : "div") as "a";
   const linkProps = href
-    ? { href, target: "_blank", rel: "noreferrer", "aria-label": `${title} — demo` }
+    ? { href, target: "_blank", rel: "noreferrer", "aria-label": `${title} — ${t("work.demo")}` }
     : {};
 
   return (
     <Tag
       ref={wrapRef}
       {...linkProps}
-      data-cursor={cursor}
+      data-cursor={t("cursor.play")}
       data-active="false"
       onPointerEnter={enter}
       onPointerLeave={leave}

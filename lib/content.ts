@@ -93,8 +93,12 @@ export const PROJECTS: Project[] = [
   },
 ];
 
-/* ── Stack — solo tecnologías confirmadas en el proyecto o el CV ── */
-export const STACK: { key: string; items: string[] }[] = [
+/* ── Stack — solo tecnologías confirmadas en el proyecto o el CV ──
+   Cada categoría es una capa de la web (sección Quién soy / The Engineer).
+   Los nombres propios no se traducen; el resto lleva versión ES/EN. */
+export type StackItem = string | { es: string; en: string };
+
+export const STACK: { key: string; items: StackItem[] }[] = [
   {
     key: "frontend",
     items: [
@@ -109,29 +113,32 @@ export const STACK: { key: string; items: string[] }[] = [
       "Lenis",
     ],
   },
-  { key: "backend", items: ["Node.js", "Express", "REST APIs", "JWT", "Auth.js"] },
+  {
+    key: "backend",
+    items: ["Node.js", "Express", { es: "APIs REST", en: "REST APIs" }, "JWT", "Auth.js"],
+  },
   { key: "databases", items: ["SQL", "SQLite", "MongoDB"] },
+  {
+    key: "ai",
+    items: [
+      { es: "API de OpenAI", en: "OpenAI API" },
+      { es: "Compatibilidad por IA", en: "AI matching" },
+      { es: "Automatización de flujos", en: "Workflow automation" },
+    ],
+  },
   { key: "workflow", items: ["Git", "GitHub", "Vercel", "VS Code"] },
-  { key: "ai", items: ["OpenAI API", "AI matching", "Workflow automation"] },
 ];
 
-/* ── Experimental Zone ─────────────────────────────────────
-   status:
-   - "live"  → existe y se ejecuta en la página.
-   - "slot"  → hueco preparado, todavía sin experimento.
-   Para añadir uno nuevo: cambiar el status y conectar su
-   componente en components/sections/Experimental.tsx. */
+/* ── Laboratorio IA ─────────────────────────────────────────
+   Tres experimentos escritos a mano, sin librerías, que se
+   ejecutan en el navegador del visitante (components/experiments). */
 export type Experiment = {
-  id: string;
+  id: "net" | "agent" | "flow";
   code: string;
-  titleKey: string;
-  medium: string;
-  status: "live" | "slot";
 };
 
 export const EXPERIMENTS: Experiment[] = [
-  { id: "particles", code: "EXP—01", titleKey: "exp.particles", medium: "Canvas 2D", status: "live" },
-  { id: "kinetic", code: "EXP—02", titleKey: "exp.kinetic", medium: "DOM / GSAP", status: "slot" },
-  { id: "ai", code: "EXP—03", titleKey: "exp.ai", medium: "LLM API", status: "slot" },
-  { id: "webgl", code: "EXP—04", titleKey: "exp.webgl", medium: "WebGL / Three.js", status: "slot" },
+  { id: "net", code: "EXP—01" },
+  { id: "agent", code: "EXP—02" },
+  { id: "flow", code: "EXP—03" },
 ];

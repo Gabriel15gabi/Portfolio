@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { acceptCookies, collectErrors, scrollToSelector, waitForApp } from "./helpers";
+import { POOL } from "../lib/ai/inbox";
 
 const PROJECTS = [
   { title: "JobFlow", demo: "https://jobflow-lac.vercel.app", repo: "https://github.com/Gabriel15gabi/jobflow" },
@@ -31,7 +32,8 @@ test.describe("Carga y estructura", () => {
     for (const id of ["#top", "#manifesto", "#work", "#lab", "#engineer", "#contact"]) {
       await expect(page.locator(id)).toBeAttached();
     }
-    for (const name of ["Selected Work", "Experimental Zone", "The Engineer"]) {
+    // En español, todos los titulares están en español.
+    for (const name of ["Proyectos", "Laboratorio IA", "Quién soy"]) {
       await expect(page.getByRole("heading", { level: 2, name })).toBeAttached();
     }
   });
@@ -75,12 +77,55 @@ test.describe("Proyectos", () => {
     }
   });
 
-  test("la zona experimental solo marca como activo EXP—01", async ({ page }) => {
+});
+
+test.describe("Laboratorio IA", () => {
+  test("tres modelos en vivo que entrenan solos con el experimento a la vista", async ({ page }) => {
+    const errors = collectErrors(page);
     await acceptCookies(page);
     await page.goto("/");
+    await waitForApp(page);
     const lab = page.locator("#lab");
-    await expect(lab.getByText("Activo", { exact: true })).toHaveCount(1);
-    await expect(lab.getByText("Hueco reservado", { exact: true })).toHaveCount(3);
+    await expect(lab.getByText("En vivo", { exact: true })).toHaveCount(3);
+    await expect(lab.locator('canvas[role="img"]')).toHaveCount(3);
+    for (const name of ["La red aprende a dibujar", "Un agente aprende solo", "Automatización con IA"]) {
+      await expect(lab.getByRole("heading", { level: 3, name })).toBeAttached();
+    }
+    // Los modelos solo trabajan a la vista: al llegar, el contador de pasos sube.
+    await scrollToSelector(page, 'article[aria-labelledby="exp-net"]');
+    const counter = lab.locator("p", { hasText: "pasos de entrenamiento en esta visita" }).locator("span").first();
+    await expect
+      .poll(async () => Number((await counter.textContent())?.replace(/\D/g, "") || 0), { timeout: 10_000 })
+      .toBeGreaterThan(50);
+    expect(errors).toEqual([]);
+  });
+
+  test("la automatización clasifica un mensaje escrito por el visitante", async ({ page }) => {
+    await acceptCookies(page);
+    await page.goto("/");
+    await waitForApp(page);
+    await scrollToSelector(page, 'article[aria-labelledby="exp-flow"]');
+    const flow = page.locator('article[aria-labelledby="exp-flow"]');
+    await flow.getByLabel("Mensaje para la automatización").fill("Quería pedir presupuesto para la web de mi academia");
+    await flow.getByRole("button", { name: /Enviar/ }).click();
+    const row = flow.locator("li", { hasText: "academia" });
+    await expect(row).toContainText("Tú", { timeout: 15_000 });
+    await expect(row).toContainText("Presupuesto");
+  });
+
+  test("con el inglés guardado, el flujo trabaja en inglés desde el principio", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem("cookie-consent", "accepted");
+      localStorage.setItem("lang", "en");
+    });
+    await page.goto("/");
+    await waitForApp(page);
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await scrollToSelector(page, 'article[aria-labelledby="exp-flow"]');
+    const first = page.locator('article[aria-labelledby="exp-flow"] ol li').first();
+    await expect(first).toBeVisible({ timeout: 15_000 });
+    const text = (await first.locator(".truncate").textContent())?.trim();
+    expect(POOL.en).toContain(text);
   });
 });
 
@@ -98,6 +143,11 @@ test.describe("Idioma", () => {
     }
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(page.getByText("Independent developer creating digital products").first()).toBeAttached();
+    // En inglés, todo en inglés: titulares y título de la pestaña.
+    for (const name of ["Selected Work", "AI Lab", "The Engineer"]) {
+      await expect(page.getByRole("heading", { level: 2, name })).toBeAttached();
+    }
+    await expect(page).toHaveTitle(/Independent Developer/);
   });
 
   test("con cookies aceptadas el idioma persiste al recargar", async ({ page, isMobile }) => {
@@ -175,13 +225,13 @@ test.describe("Temas por sección", () => {
 });
 
 test.describe("Contacto", () => {
-  test("copiar email da feedback", async ({ page, context, browserName }) => {
+  test("copiar el correo da feedback", async ({ page, context, browserName }) => {
     test.skip(browserName !== "chromium", "Permisos de portapapeles");
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await acceptCookies(page);
     await page.goto("/");
-    await page.getByRole("button", { name: "Copiar email" }).click();
-    await expect(page.getByRole("button", { name: /Email copiado/ })).toBeVisible();
+    await page.getByRole("button", { name: "Copiar correo" }).click();
+    await expect(page.getByRole("button", { name: /Correo copiado/ })).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("gabriel_gabiz@hotmail.com");
   });
 
@@ -194,7 +244,7 @@ test.describe("Contacto", () => {
     await acceptCookies(page);
     await page.goto("/");
     await page.getByLabel("01 — Nombre").fill("Ada");
-    await page.getByLabel("02 — Email").fill("ada@example.com");
+    await page.getByLabel("02 — Correo").fill("ada@example.com");
     await page.getByLabel("03 — Mensaje").fill("Hola, tengo un buen problema.");
     await page.getByRole("button", { name: /Enviar mensaje/ }).click();
     await expect(page.getByRole("button", { name: /Mensaje enviado/ })).toBeVisible();
@@ -210,7 +260,7 @@ test.describe("Contacto", () => {
     await acceptCookies(page);
     await page.goto("/");
     await page.getByLabel("01 — Nombre").fill("Ada");
-    await page.getByLabel("02 — Email").fill("ada@example.com");
+    await page.getByLabel("02 — Correo").fill("ada@example.com");
     await page.getByLabel("03 — Mensaje").fill("Hola");
     await page.getByRole("button", { name: /Enviar mensaje/ }).click();
     await expect(page.getByRole("button", { name: /No se pudo enviar/ })).toBeVisible();
@@ -242,7 +292,11 @@ test.describe("Cookies", () => {
 test.describe("Responsive", () => {
   test.use({ reducedMotion: "reduce" });
 
-  /** Textos más anchos que su caja con overflow recortado (sin contar la cinta animada). */
+  /**
+   * Textos más anchos que su caja con overflow recortado (sin contar la cinta
+   * animada ni los textos solo para lectores de pantalla), y líneas de los
+   * titulares más anchas que su máscara.
+   */
   const clippedTexts = (page: Page) =>
     page.evaluate(() => {
       const out: string[] = [];
@@ -250,27 +304,33 @@ test.describe("Responsive", () => {
         if (el.closest(".animate-ticker") || el.querySelector(".animate-ticker")) continue;
         if (!/(clip|hidden)/.test(getComputedStyle(el).overflowX)) continue;
         const text = (el.textContent || "").trim().replace(/\s+/g, " ");
-        if (text && el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 2) out.push(text.slice(0, 40));
+        if (text && el.clientWidth > 1 && el.scrollWidth > el.clientWidth + 2) out.push(text.slice(0, 40));
+      }
+      for (const el of document.querySelectorAll<HTMLElement>("[data-line]")) {
+        if (el.scrollWidth > el.clientWidth + 2) out.push(`línea: ${(el.textContent || "").trim().slice(0, 40)}`);
       }
       return out;
     });
 
-  for (const width of [320, 390, 768, 1024]) {
-    test(`a ${width} px ningún texto queda cortado (página y menú)`, async ({ page, isMobile }) => {
-      test.skip(isMobile, "Recorre los anchos él mismo");
-      await page.setViewportSize({ width, height: 800 });
-      await acceptCookies(page);
-      await page.goto("/");
-      await waitForApp(page);
-      expect(await clippedTexts(page)).toEqual([]);
-      expect(
-        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
-      ).toBeLessThanOrEqual(1);
+  for (const lang of ["es", "en"]) {
+    for (const width of [320, 390, 768, 1024]) {
+      test(`${lang} a ${width} px ningún texto queda cortado (página y menú)`, async ({ page, isMobile }) => {
+        test.skip(isMobile, "Recorre los anchos él mismo");
+        await page.setViewportSize({ width, height: 800 });
+        await acceptCookies(page);
+        await page.addInitScript((l) => localStorage.setItem("lang", l), lang);
+        await page.goto("/");
+        await waitForApp(page);
+        expect(await clippedTexts(page)).toEqual([]);
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+        ).toBeLessThanOrEqual(1);
 
-      await page.locator('button[aria-controls="site-menu"]').click();
-      await expect(page.locator("#site-menu a").first()).toBeVisible();
-      expect(await clippedTexts(page)).toEqual([]);
-    });
+        await page.locator('button[aria-controls="site-menu"]').click();
+        await expect(page.locator("#site-menu a").first()).toBeVisible();
+        expect(await clippedTexts(page)).toEqual([]);
+      });
+    }
   }
 });
 

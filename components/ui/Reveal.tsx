@@ -52,7 +52,8 @@ export default function Reveal({
         if (!lines.length) return;
         gsap.fromTo(
           lines,
-          { yPercent: 105 },
+          // Las líneas "deep" tienen más máscara por debajo: bajan más.
+          { yPercent: (_i: number, el: HTMLElement) => (el.hasAttribute("data-deep") ? 140 : 105) },
           {
             yPercent: 0,
             duration: 1.1,
@@ -75,17 +76,28 @@ export default function Reveal({
   );
 }
 
-/** Línea enmascarada para usar dentro de <Reveal>. */
+/**
+ * Línea enmascarada para usar dentro de <Reveal>.
+ * La máscara es un clip-path que sobresale por arriba: así caben las
+ * tildes de las mayúsculas (Á, É, Í, Ñ) sin cambiar el layout.
+ * `deep` deja sitio también por debajo (¿, comas) y oculta la línea
+ * más abajo al empezar la animación.
+ */
 export function Line({
   children,
   className = "",
+  deep = false,
 }: {
   children: React.ReactNode;
   className?: string;
+  deep?: boolean;
 }) {
   return (
-    <span className="mask-line">
-      <span data-line className={`block will-change-transform ${className}`}>
+    <span
+      className="block"
+      style={{ paddingBottom: "0.04em", clipPath: `inset(-0.34em -0.5em ${deep ? "-0.2em" : "0"} -0.5em)` }}
+    >
+      <span data-line {...(deep ? { "data-deep": "" } : {})} className={`block will-change-transform ${className}`}>
         {children}
       </span>
     </span>

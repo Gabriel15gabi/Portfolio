@@ -32,7 +32,9 @@ const plexMono = localFont({
   variable: "--font-plex-mono",
 });
 
-const TITLE = "Gabriel Rodríguez — Independent Developer";
+// El idioma por defecto es el español; en inglés, LanguageProvider
+// actualiza el título de la pestaña en el cliente.
+const TITLE = "Gabriel Rodríguez — Desarrollador independiente";
 const DESCRIPTION =
   "Desarrollador independiente: productos digitales, experiencias web y sistemas inteligentes con Next.js, React, Node.js e IA.";
 
@@ -80,7 +82,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: PROFILE.name,
-  jobTitle: "Independent Developer",
+  jobTitle: "Desarrollador independiente",
   email: `mailto:${PROFILE.email}`,
   address: { "@type": "PostalAddress", addressLocality: "Mérida", addressCountry: "ES" },
   sameAs: PROFILE.links.map((l) => l.href),

@@ -39,13 +39,13 @@ export default function CookieConsent() {
     <div
       role="dialog"
       aria-live="polite"
-      aria-label="Cookies"
+      aria-label={t("cookies.title")}
       className="theme-light fixed bottom-3 left-3 right-3 z-[9000] border-2 border-ink sm:left-auto sm:right-5 sm:bottom-5 sm:w-[420px]"
       style={{ animation: "cookie-in .5s var(--ease-expo) both" }}
     >
       <style>{`@keyframes cookie-in{from{transform:translateY(110%)}to{transform:none}}`}</style>
       <div className="flex items-center justify-between border-b-2 border-ink bg-ink px-4 py-2 text-paper">
-        <span className="label-mono">Cookies</span>
+        <span className="label-mono">{t("cookies.title")}</span>
         <span className="label-mono text-signal">01/01</span>
       </div>
       <p className="px-4 py-4 text-sm leading-snug">{t("cookies.text")}</p>

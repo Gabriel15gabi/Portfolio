@@ -105,14 +105,24 @@ export default function Contact() {
       </div>
 
       {/* Cierre monumental */}
-      <Reveal as="h2" id="contact-title" className="display mt-10 text-[clamp(min(4rem,16.8vw),15.5vw,16rem)] md:mt-14">
+      {/* En español las líneas son más largas y la primera abre con ¿: algo
+          más pequeño y con más interlineado para que nada se pise. */}
+      <Reveal
+        as="h2"
+        id="contact-title"
+        className={`display mt-10 md:mt-14 ${
+          lang === "es"
+            ? "text-[clamp(min(3rem,14.2vw),11.6vw,12rem)] leading-[1]"
+            : "text-[clamp(min(4rem,16.8vw),15.5vw,16rem)]"
+        }`}
+      >
         <KineticLine drift={6}>
-          <Line>Have a good</Line>
+          <Line deep>{t("contact.title1")}</Line>
         </KineticLine>
         <KineticLine drift={-6}>
-          <Line className="md:pl-[16vw]">problem?</Line>
+          <Line className="md:pl-[16vw]">{t("contact.title2")}</Line>
         </KineticLine>
-        <Line className="text-paper">Let&apos;s solve it.</Line>
+        <Line className="text-paper">{t("contact.title3")}</Line>
       </Reveal>
 
       <div className="mt-14 grid gap-12 md:mt-20 md:grid-cols-12 md:gap-x-6">
@@ -124,14 +134,16 @@ export default function Contact() {
             <p className="label-mono mb-2">{t("contact.write")}</p>
             <a
               href={`mailto:${PROFILE.email}`}
-              data-cursor="MAIL ↗"
-              className="link-sweep break-all text-[clamp(1.35rem,2.6vw,2.4rem)] font-bold leading-tight tracking-tight"
+              data-cursor={t("cursor.mail")}
+              className="link-sweep break-words text-[clamp(1.35rem,2.6vw,2.4rem)] font-bold leading-tight tracking-tight"
             >
-              {PROFILE.email}
+              {/* Si no cabe, se parte tras la @ y no a mitad de palabra. */}
+              {PROFILE.email.split("@")[0]}@<wbr />
+              {PROFILE.email.split("@")[1]}
             </a>
             <button
               onClick={copyEmail}
-              data-cursor="COPY"
+              data-cursor={t("cursor.copy")}
               aria-live="polite"
               className="label-mono mt-3 block border-2 border-ink px-3 py-3 transition-colors hover:bg-ink hover:text-paper md:py-2"
             >
@@ -148,7 +160,7 @@ export default function Contact() {
                     href={l.href}
                     target="_blank"
                     rel="noreferrer"
-                    data-cursor="OPEN ↗"
+                    data-cursor={t("cursor.open")}
                     className="group flex items-baseline justify-between gap-4 py-3 transition-colors hover:bg-ink hover:px-3 hover:text-paper"
                   >
                     <span className="label-mono">{String(i + 1).padStart(2, "0")}</span>
@@ -163,7 +175,7 @@ export default function Contact() {
                   href={PROFILE.cv}
                   target="_blank"
                   rel="noreferrer"
-                  data-cursor="PDF ↓"
+                  data-cursor={t("cursor.pdf")}
                   className="group flex items-center justify-between gap-4 py-3 transition-colors hover:bg-ink hover:px-3 hover:text-paper"
                 >
                   <span className="label-mono">0{PROFILE.links.length + 1}</span>
@@ -191,8 +203,8 @@ export default function Contact() {
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-8 md:col-span-6 md:col-start-7" noValidate={false}>
           <p className="label-mono flex justify-between border-t-2 border-ink pt-3">
-            <span>Form — Web3Forms</span>
-            <span>03 fields</span>
+            <span>{t("contact.form.title")}</span>
+            <span>{t("contact.form.fields")}</span>
           </p>
           <div>
             <label htmlFor="f-name" className={label}>
@@ -242,7 +254,7 @@ export default function Contact() {
           <button
             type="submit"
             disabled={status === "sending" || status === "sent"}
-            data-cursor="SEND"
+            data-cursor={t("cursor.send")}
             className="group label-mono flex items-center justify-between bg-ink px-5 py-5 text-[0.85rem] text-paper transition-colors hover:bg-paper hover:text-ink disabled:opacity-80"
           >
             <span aria-live="polite">{buttonLabel}</span>

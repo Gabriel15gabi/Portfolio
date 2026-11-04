@@ -5,8 +5,7 @@ import { gsap, useGSAP, ScrollTrigger, MQ } from "@/lib/gsap";
 import { useLanguage } from "@/lib/i18n";
 
 /** Cinta industrial que cruza la composición en diagonal. */
-function Tape() {
-  const items = ["Frontend", "Backend", "Databases", "AI & Automation", "Available for work", "Mérida — ES"];
+function Tape({ items }: { items: string[] }) {
   const row = (
     <span className="flex shrink-0 items-center">
       {items.map((it) => (
@@ -83,7 +82,7 @@ export default function Manifesto() {
       aria-label={t("manifesto.label")}
       className="relative overflow-clip px-4 pb-20 sm:px-8 md:pb-40 lg:px-12"
     >
-      <Tape />
+      <Tape items={t("manifesto.tape").split("|")} />
 
       <div className="mt-16 grid gap-8 md:mt-36 md:grid-cols-12">
         <p className="label-mono md:col-span-3">

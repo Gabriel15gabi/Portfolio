@@ -32,7 +32,7 @@ function Actions({ p, t, className = "" }: { p: Project; t: T; className?: strin
           href={p.demo}
           target="_blank"
           rel="noreferrer"
-          data-cursor="OPEN ↗"
+          data-cursor={t("cursor.open")}
           className="label-mono group/btn inline-flex items-center gap-3 border-2 border-fg bg-fg px-4 py-3 text-bg transition-colors hover:border-accent hover:bg-accent hover:text-paper"
         >
           {t("work.demo")}
@@ -44,7 +44,7 @@ function Actions({ p, t, className = "" }: { p: Project; t: T; className?: strin
           href={p.repo}
           target="_blank"
           rel="noreferrer"
-          data-cursor="SOURCE ↗"
+          data-cursor={t("cursor.code")}
           className="label-mono group/btn inline-flex items-center gap-3 border-2 border-fg px-4 py-3 transition-colors hover:bg-fg hover:text-bg"
         >
           {t("work.code")}
@@ -119,7 +119,7 @@ function PieceBleed({ p, t }: { p: Project; t: T }) {
       <MetaStrip p={p} t={t} />
       <div className="relative mt-6 grid md:grid-cols-12">
         <Reveal variant="clip" className="md:col-span-10">
-          <ProjectMedia src={p.media ?? ""} title={p.title} href={p.demo} className="aspect-[16/10] md:aspect-[16/8.5]" />
+          <ProjectMedia src={p.media ?? ""} title={p.title} href={p.demo} t={t} className="aspect-[16/10] md:aspect-[16/8.5]" />
         </Reveal>
         <div className="relative md:col-span-7 md:col-start-6 md:-mt-[9vw]">
           <Title id={`p-${p.slug}`} className="text-[19vw] [-webkit-text-stroke:0.07em_var(--bg)] [paint-order:stroke_fill] md:text-[13vw]">{p.title}</Title>
@@ -157,7 +157,7 @@ function PieceColumn({ p, t }: { p: Project; t: T }) {
         </div>
         <Parallax speed={-0.15} className="md:col-span-5 md:col-start-8">
           <Reveal variant="clip">
-            <ProjectMedia src={p.media ?? ""} title={p.title} href={p.demo} className="aspect-[4/5]" />
+            <ProjectMedia src={p.media ?? ""} title={p.title} href={p.demo} t={t} className="aspect-[4/5]" />
           </Reveal>
         </Parallax>
       </div>
@@ -180,6 +180,7 @@ function PieceBlock({ p, t }: { p: Project; t: T }) {
             src={p.media ?? ""}
             title={p.title}
             href={p.demo}
+            t={t}
             className="aspect-[16/10] border-2 border-ink"
           />
         </div>
@@ -200,7 +201,7 @@ function NextPiece({ t }: { t: T }) {
         <span>
           <span className="text-accent">{t("work.index")} 05</span>
         </span>
-        <span className="text-muted">WIP</span>
+        <span className="text-muted">{t("work.nextTag")}</span>
       </div>
       <div
         className="mt-6 flex min-h-[38vh] flex-col justify-between gap-8 border-2 border-dashed border-fg p-6 md:flex-row md:items-end md:p-10"
@@ -227,7 +228,7 @@ export default function Work() {
   const { t } = useLanguage();
   return (
     <section id="work" data-theme="light" aria-labelledby="work-title" className="relative overflow-clip pb-20 md:pb-32">
-      <SectionHeader num="01" title="Selected Work" label={t("work.label")} meta={t("work.meta")} id="work-title" />
+      <SectionHeader num="01" title={t("work.title")} label={t("work.label")} meta={t("work.meta")} id="work-title" />
       <div className="mt-16 flex flex-col gap-24 px-4 sm:px-8 md:mt-24 md:gap-48 lg:px-12">
         {PROJECTS.map((p) => {
           // Las composiciones con imagen necesitan media; sin ella, tipográfica.

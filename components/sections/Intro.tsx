@@ -111,7 +111,7 @@ export default function Intro() {
       {/* Fila de metadatos */}
       <div className="label-mono relative grid grid-cols-2 gap-x-4 gap-y-2 border-t-2 border-fg pt-3 md:grid-cols-12">
         <span data-intro-fade className="md:col-span-3">
-          <span className="text-accent">§00</span> — Introduction
+          <span className="text-accent">§00</span> — {t("intro.label")}
         </span>
         <span data-intro-fade className="text-right md:col-span-4 md:col-start-5 md:text-left">
           {t("intro.based")} {PROFILE.location[lang]}
@@ -140,9 +140,9 @@ export default function Intro() {
           data-intro-fade
           className="text-[clamp(1.7rem,3.3vw,3.6rem)] font-bold uppercase leading-[1.04] tracking-[-0.03em] md:col-span-6"
         >
-          Not here to fit in.
+          {t("intro.tagline1")}
           <br />
-          <span className="bg-fg px-[0.12em] text-bg [box-decoration-break:clone]">Here to build.</span>
+          <span className="bg-fg px-[0.12em] text-bg [box-decoration-break:clone]">{t("intro.tagline2")}</span>
         </p>
         <p data-intro-fade className="max-w-[36ch] text-base leading-snug text-muted md:col-span-3 md:col-start-7">
           {t("intro.description")}
@@ -177,7 +177,7 @@ export default function Intro() {
       {/* Pie de la portada (conserva la altura del antiguo indicador de scroll) */}
       <div className="label-mono relative mt-6 hidden min-h-12 items-end md:flex">
         <span data-intro-fade className="hidden text-muted md:block">
-          Frontend — Backend — AI &amp; Automation
+          {t("intro.disciplines")}
         </span>
       </div>
     </section>

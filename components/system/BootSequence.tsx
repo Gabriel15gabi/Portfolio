@@ -84,7 +84,7 @@ export default function BootSequence() {
         className="boot-screen theme-dark fixed inset-0 z-[9995] flex flex-col justify-between p-4 sm:p-8 lg:p-12"
       >
         <div className="label-mono flex justify-between">
-          <span>GR/ — Brutalist Digital Object</span>
+          <span>GR/ — {t("loader.brand")}</span>
           <span className="text-signal">{t("loader.label")}</span>
         </div>
         <div className="flex items-end justify-between">

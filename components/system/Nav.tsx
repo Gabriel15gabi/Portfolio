@@ -39,9 +39,9 @@ function useMeridaTime() {
 }
 
 function LangToggle({ className = "" }: { className?: string }) {
-  const { lang, setLang } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   return (
-    <div className={`label-mono flex items-center ${className}`} role="group" aria-label="Language">
+    <div className={`label-mono flex items-center ${className}`} role="group" aria-label={t("nav.language")}>
       {(["es", "en"] as const).map((l, i) => (
         <span key={l} className="flex items-center">
           {i > 0 && <span className="px-1 opacity-40">/</span>}
@@ -209,7 +209,7 @@ export default function Nav() {
             href="#top"
             onClick={(e) => go(e, "#top")}
             className="group relative flex items-baseline gap-3 before:absolute before:-inset-2"
-            aria-label="Gabriel Rodríguez — inicio"
+            aria-label={t("nav.logo")}
           >
             <span className="display text-[1.9rem] leading-none tracking-tight">
               GR<span className="text-accent">/</span>
