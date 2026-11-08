@@ -153,6 +153,18 @@ body::after {
   text-transform: uppercase;
 }
 
+/* Cartel de la portada en móvil: la línea se estira en vertical (--k)
+   desde arriba y su caja crece lo mismo, para que nada se pise (con
+   relleno y no margen: los márgenes entre líneas se colapsarían). Sin
+   transiciones: con movimiento reducido todo transiciona 0,01 ms y el
+   alto llegaría un fotograma tarde. */
+@utility stretch-y {
+  transform-origin: left top;
+  scale: 1 var(--k, 1);
+  padding-bottom: calc(0.8em * (var(--k, 1) - 1));
+  transition-property: none;
+}
+
 @utility text-outline {
   color: transparent;
   -webkit-text-stroke: 1.5px var(--fg);
@@ -193,7 +205,8 @@ body::after {
    El script inline de BootSequence añade .motion-ok cuando hay
    movimiento: así el nombre y los textos que entran animados no
    parpadean visibles al hidratar (GSAP los muestra al animarlos). */
-html.motion-ok [data-intro-name] {
+html.motion-ok [data-intro-name],
+html.motion-ok [data-intro-poster] {
   visibility: hidden;
 }
 html.motion-ok [data-intro-fade] {

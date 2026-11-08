@@ -359,54 +359,65 @@ test.describe("Nombre de la portada", () => {
 });
 
 test.describe("Portada en móvil", () => {
-  for (const [width, height] of [
-    [316, 858],
-    [390, 844],
-    [320, 568],
-  ]) {
-    test(`a ${width}×${height} la primera pantalla es solo el nombre y el resto llega al bajar`, async ({
-      page,
-      isMobile,
-    }) => {
+  /** Por línea del cartel: borde superior e inferior de sus letras y el derecho más lejano. */
+  const posterLines = (page: Page) =>
+    page.locator("#top [data-stretch]").evaluateAll((lines) =>
+      lines.map((l) => {
+        const r = [...l.querySelectorAll("[data-char]")].map((c) => c.getBoundingClientRect());
+        return {
+          top: Math.min(...r.map((x) => x.top)),
+          bottom: Math.max(...r.map((x) => x.bottom)),
+          right: Math.max(...r.map((x) => x.right)),
+        };
+      })
+    );
+
+  for (const [width, height, fits] of [
+    [316, 858, true],
+    [390, 844, true],
+    [320, 568, false],
+  ] as const) {
+    test(`a ${width}×${height} el nombre y la frase llenan la pantalla sin pisarse`, async ({ page, isMobile }) => {
       test.skip(!isMobile, "Composición de móvil");
       await page.emulateMedia({ reducedMotion: "reduce" });
       await page.setViewportSize({ width, height });
       await acceptCookies(page);
       await page.goto("/");
       await waitForApp(page);
+      // El ajuste al alto de la pantalla ya se ha aplicado.
+      await page.waitForFunction(() => document.querySelector<HTMLElement>("[data-stretch]")?.style.getPropertyValue("--k"));
 
       const box = async (sel: string) => (await page.locator(sel).first().boundingBox())!;
       const meta = await box("#top .label-mono.grid");
-      const name = await box("[data-intro-name]");
       const avail = await box("[data-intro-stage] > p[data-intro-fade]");
-      const sheet = await box("[data-intro-sheet]");
+      const lines = await posterLines(page);
 
-      // Primera pantalla: metadatos arriba, el nombre entero y la disponibilidad debajo.
-      expect(name.y).toBeGreaterThan(meta.y + meta.height);
-      expect(avail.y).toBeGreaterThanOrEqual(name.y + name.height);
-      expect(avail.y + avail.height).toBeLessThanOrEqual(height);
-      const right = await page
-        .locator("[data-intro-name] [data-char]")
-        .evaluateAll((els) => Math.max(...els.map((e) => e.getBoundingClientRect().right)));
-      expect(right).toBeLessThanOrEqual(width - 4);
+      // Dos líneas de nombre y la frase partida en varias, todas a lo ancho y sin salirse.
+      expect(lines.length).toBeGreaterThanOrEqual(4);
+      for (const l of lines) {
+        expect(l.right).toBeLessThanOrEqual(width - 4);
+        expect(l.right).toBeGreaterThan(width * 0.8);
+      }
+      // Empiezan justo bajo los metadatos y ninguna línea pisa a la siguiente.
+      expect(lines[0].top - (meta.y + meta.height)).toBeLessThan(48);
+      for (let i = 1; i < lines.length; i++) expect(lines[i].top).toBeGreaterThanOrEqual(lines[i - 1].bottom - 1);
+      expect(avail.y).toBeGreaterThanOrEqual(lines[lines.length - 1].bottom - 1);
 
-      // La frase, la descripción y las disciplinas empiezan justo debajo de la primera pantalla.
-      expect(sheet.y).toBeGreaterThanOrEqual(height - 1);
-      await expect(page.locator("[data-intro-sheet] li")).toHaveCount(3);
+      if (fits) {
+        // Sin huecos: el cartel llega hasta la disponibilidad, al pie de la primera pantalla.
+        expect(avail.y + avail.height).toBeLessThanOrEqual(height);
+        expect(avail.y + avail.height).toBeGreaterThan(height - 48);
+        expect(avail.y - lines[lines.length - 1].bottom).toBeLessThan(40);
+        expect((await box("[data-intro-sheet]")).y).toBeGreaterThanOrEqual(height - 1);
+      }
+
       // El texto de escritorio y el bloque rojo no se muestran en móvil.
       await expect(page.locator("[data-intro-tagline]")).toBeHidden();
       await expect(page.locator("#top [data-intro-block]")).toBeHidden();
-
-      // Sección y ciudad comparten una sola línea.
-      const [label, city] = await page
-        .locator("#top .label-mono.grid > span")
-        .evaluateAll((els) => els.slice(0, 2).map((e) => e.getBoundingClientRect()).map((r) => [r.top, r.height]));
-      expect(Math.abs(city[0] - label[0])).toBeLessThan(1);
-      expect(Math.abs(city[1] - label[1])).toBeLessThan(1);
     });
   }
 
-  test("con el inglés guardado, la frase y las disciplinas aparecen al bajar", async ({ page, isMobile }) => {
+  test("con el inglés guardado, el cartel y las disciplinas salen en inglés", async ({ page, isMobile }) => {
     test.skip(!isMobile, "Composición de móvil");
     // Visita de vuelta: idioma guardado y la intro de carga ya vista en la sesión.
     await page.addInitScript(() => {
@@ -416,9 +427,24 @@ test.describe("Portada en móvil", () => {
     });
     await page.goto("/");
     await waitForApp(page);
-    // El idioma cambia tras hidratar: las líneas que anima Reveal no pueden
-    // quedarse ocultas ni con el texto en español.
-    await expect(page.locator("[data-intro-sheet]")).toContainText("Here to build.");
+    // El idioma cambia tras hidratar: las líneas del cartel se rehacen en inglés
+    // y sus letras terminan en su sitio, visibles.
+    const poster = page.locator("[data-intro-poster]");
+    await expect(poster).toContainText("Here to build.");
+    await expect(poster.locator("[aria-hidden]").last()).toHaveText("BUILD.");
+    await expect
+      .poll(
+        () =>
+          poster.evaluate((p) =>
+            [...p.querySelectorAll<HTMLElement>("[data-char]")].every((c) => {
+              const t = getComputedStyle(c).transform;
+              return t === "none" || Math.abs(new DOMMatrix(t).m42) < 1;
+            })
+          ),
+        { timeout: 8000 }
+      )
+      .toBe(true);
+
     await scrollToSelector(page, "[data-intro-sheet] ul");
     const item = page.locator("[data-intro-sheet] li", { hasText: "AI & Automation" });
     await expect
