@@ -359,26 +359,44 @@ test.describe("Nombre de la portada", () => {
 });
 
 test.describe("Portada en móvil", () => {
-  for (const width of [316, 390]) {
-    test(`a ${width} px el nombre va sobre la banda roja y nada se pisa`, async ({ page, isMobile }) => {
+  for (const [width, height] of [
+    [316, 858],
+    [390, 844],
+    [320, 568],
+  ]) {
+    test(`a ${width}×${height} la primera pantalla es solo el nombre y el resto llega al bajar`, async ({
+      page,
+      isMobile,
+    }) => {
       test.skip(!isMobile, "Composición de móvil");
       await page.emulateMedia({ reducedMotion: "reduce" });
-      await page.setViewportSize({ width, height: 858 });
+      await page.setViewportSize({ width, height });
       await acceptCookies(page);
       await page.goto("/");
       await waitForApp(page);
-      const band = (await page.locator('[data-intro-block="m"]').boundingBox())!;
-      const name = (await page.locator("[data-intro-name]").boundingBox())!;
-      const text = (await page.locator("[data-intro-tagline]").boundingBox())!;
-      // Banda a sangre, de borde a borde.
-      expect(Math.round(band.x)).toBe(0);
-      expect(Math.round(band.x + band.width)).toBe(width);
-      // El nombre entero dentro de la banda, y la banda por debajo del texto.
-      expect(name.y).toBeGreaterThanOrEqual(band.y);
-      expect(name.y + name.height).toBeLessThanOrEqual(band.y + band.height);
-      expect(band.y).toBeGreaterThanOrEqual(text.y + text.height);
-      // El bloque rojo de escritorio no se muestra en móvil.
-      await expect(page.locator('#top [data-intro-block]:not([data-intro-block="m"])')).toBeHidden();
+
+      const box = async (sel: string) => (await page.locator(sel).first().boundingBox())!;
+      const meta = await box("#top .label-mono.grid");
+      const name = await box("[data-intro-name]");
+      const avail = await box("[data-intro-stage] > p[data-intro-fade]");
+      const sheet = await box("[data-intro-sheet]");
+
+      // Primera pantalla: metadatos arriba, el nombre entero y la disponibilidad debajo.
+      expect(name.y).toBeGreaterThan(meta.y + meta.height);
+      expect(avail.y).toBeGreaterThanOrEqual(name.y + name.height);
+      expect(avail.y + avail.height).toBeLessThanOrEqual(height);
+      const right = await page
+        .locator("[data-intro-name] [data-char]")
+        .evaluateAll((els) => Math.max(...els.map((e) => e.getBoundingClientRect().right)));
+      expect(right).toBeLessThanOrEqual(width - 4);
+
+      // La frase, la descripción y las disciplinas empiezan justo debajo de la primera pantalla.
+      expect(sheet.y).toBeGreaterThanOrEqual(height - 1);
+      await expect(page.locator("[data-intro-sheet] li")).toHaveCount(3);
+      // El texto de escritorio y el bloque rojo no se muestran en móvil.
+      await expect(page.locator("[data-intro-tagline]")).toBeHidden();
+      await expect(page.locator("#top [data-intro-block]")).toBeHidden();
+
       // Sección y ciudad comparten una sola línea.
       const [label, city] = await page
         .locator("#top .label-mono.grid > span")
@@ -388,7 +406,7 @@ test.describe("Portada en móvil", () => {
     });
   }
 
-  test("con el inglés guardado, la banda muestra las tres disciplinas", async ({ page, isMobile }) => {
+  test("con el inglés guardado, la frase y las disciplinas aparecen al bajar", async ({ page, isMobile }) => {
     test.skip(!isMobile, "Composición de móvil");
     // Visita de vuelta: idioma guardado y la intro de carga ya vista en la sesión.
     await page.addInitScript(() => {
@@ -398,9 +416,11 @@ test.describe("Portada en móvil", () => {
     });
     await page.goto("/");
     await waitForApp(page);
-    // Al cambiar de idioma tras hidratar, el elemento se vuelve a montar:
-    // no puede quedarse oculto esperando una animación de entrada que ya pasó.
-    const item = page.locator("#top li", { hasText: "AI & Automation" });
+    // El idioma cambia tras hidratar: las líneas que anima Reveal no pueden
+    // quedarse ocultas ni con el texto en español.
+    await expect(page.locator("[data-intro-sheet]")).toContainText("Here to build.");
+    await scrollToSelector(page, "[data-intro-sheet] ul");
+    const item = page.locator("[data-intro-sheet] li", { hasText: "AI & Automation" });
     await expect
       .poll(
         () =>
@@ -408,7 +428,9 @@ test.describe("Portada en móvil", () => {
             for (let n: Element | null = el; n; n = n.parentElement) {
               if (getComputedStyle(n).opacity === "0") return "oculto";
             }
-            return "visible";
+            const line = el.querySelector<HTMLElement>("[data-line]")!;
+            const t = getComputedStyle(line).transform;
+            return t === "none" || Math.abs(new DOMMatrix(t).m42) < 1 ? "visible" : "desplazado";
           }),
         { timeout: 8000 }
       )
